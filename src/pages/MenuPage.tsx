@@ -18,7 +18,7 @@ const MenuPage = () => {
   const [favorites, setFavorites] = useState<number[]>([]);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
 
-  // Mock data amélioré
+  // Mock data avec des images placeholder fonctionnelles
   const restaurant = {
     name: "Le Petit Bistro Parisien",
     description: "Cuisine française authentique dans un cadre chaleureux et convivial depuis 1985",
@@ -26,8 +26,8 @@ const MenuPage = () => {
     phone: "+33 1 42 33 44 55",
     email: "contact@petitbistro.fr",
     website: "www.petitbistro.fr",
-    logo: "/api/placeholder/120/120",
-    cover: "/api/placeholder/800/300",
+    logo: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=120&h=120&fit=crop&crop=center",
+    cover: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=300&fit=crop&crop=center",
     rating: 4.8,
     reviewCount: 247,
     priceRange: "€€€",
@@ -51,7 +51,7 @@ const MenuPage = () => {
           name: "Foie gras de canard maison",
           description: "Foie gras de canard mi-cuit, confiture de figues, pain brioché toasté",
           price: "24.50",
-          image: "/api/placeholder/300/200",
+          image: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=300&h=200&fit=crop&crop=center",
           allergens: ["Gluten"],
           isPopular: true,
           isVegetarian: false,
@@ -62,7 +62,7 @@ const MenuPage = () => {
           name: "Salade de chèvre chaud aux noix",
           description: "Salade de mesclun, crottin de chèvre grillé, noix fraîches, miel d'acacia",
           price: "16.80",
-          image: "/api/placeholder/300/200",
+          image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=300&h=200&fit=crop&crop=center",
           allergens: ["Fruits à coque", "Lait"],
           isPopular: false,
           isVegetarian: true,
@@ -81,7 +81,7 @@ const MenuPage = () => {
           name: "Bœuf bourguignon traditionnel",
           description: "Mijoté de bœuf aux carottes et champignons de Paris, accompagné de pommes de terre grenaille",
           price: "28.90",
-          image: "/api/placeholder/300/200",
+          image: "https://images.unsplash.com/photo-1574484284002-952d92456975?w=300&h=200&fit=crop&crop=center",
           allergens: ["Sulfites"],
           isPopular: true,
           isVegetarian: false,
@@ -92,7 +92,7 @@ const MenuPage = () => {
           name: "Saumon grillé à l'aneth",
           description: "Filet de saumon grillé, sauce à l'aneth, légumes de saison et riz basmati",
           price: "26.50",
-          image: "/api/placeholder/300/200",
+          image: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=300&h=200&fit=crop&crop=center",
           allergens: ["Poisson"],
           isPopular: false,
           isVegetarian: false,
@@ -111,7 +111,7 @@ const MenuPage = () => {
           name: "Tarte Tatin maison",
           description: "Tarte aux pommes caramélisées, servie tiède avec une boule de glace vanille bourbon",
           price: "12.50",
-          image: "/api/placeholder/300/200",
+          image: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=300&h=200&fit=crop&crop=center",
           allergens: ["Gluten", "Lait", "Œufs"],
           isPopular: true,
           isVegetarian: true,
@@ -130,7 +130,7 @@ const MenuPage = () => {
           name: "Côtes du Rhône Rouge 2020",
           description: "Vin rouge fruité aux arômes de fruits rouges, parfait avec nos viandes",
           price: "28.00",
-          image: "/api/placeholder/300/200",
+          image: "https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=300&h=200&fit=crop&crop=center",
           allergens: ["Sulfites"],
           isPopular: false,
           isVegetarian: true,
@@ -202,7 +202,10 @@ const MenuPage = () => {
     <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gradient-to-br from-gray-50 to-white'}`}>
       {/* Header avec image de couverture */}
       <header className="relative overflow-hidden">
-        <div className="h-64 bg-gradient-to-r from-scanner-dark to-scanner-blue relative">
+        <div 
+          className="h-64 bg-gradient-to-r from-scanner-dark to-scanner-blue relative bg-cover bg-center"
+          style={{ backgroundImage: `url(${restaurant.cover})` }}
+        >
           <div className="absolute inset-0 bg-black/40"></div>
           <div className="absolute top-4 right-4 flex space-x-2">
             <Button
@@ -225,42 +228,44 @@ const MenuPage = () => {
         </div>
         
         <div className="container mx-auto px-4 -mt-20 relative z-10">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-elegant p-8 border border-gray-200/50">
+          <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-elegant p-8 border border-gray-200/50`}>
             <div className="flex flex-col md:flex-row items-start gap-6">
-              <div className="w-24 h-24 bg-gradient-to-br from-scanner-red to-pink-500 rounded-2xl flex items-center justify-center text-white text-3xl font-bold shadow-lg">
-                {restaurant.name.split(' ').map(word => word[0]).join('').slice(0, 2)}
-              </div>
+              <img
+                src={restaurant.logo}
+                alt={`Logo ${restaurant.name}`}
+                className="w-24 h-24 rounded-2xl object-cover shadow-lg"
+              />
               
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                  <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                     {restaurant.name}
                   </h1>
                   <div className="flex items-center space-x-1">
                     <Star className="h-5 w-5 text-yellow-400 fill-current" />
                     <span className="font-semibold">{restaurant.rating}</span>
-                    <span className="text-gray-500">({restaurant.reviewCount} avis)</span>
+                    <span className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>({restaurant.reviewCount} avis)</span>
                   </div>
                 </div>
                 
-                <p className="text-gray-600 dark:text-gray-300 mb-4 text-lg">
+                <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-4 text-lg`}>
                   {restaurant.description}
                 </p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                  <div className={`flex items-center gap-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     <MapPin className="h-4 w-4 text-scanner-red" />
                     <span>{restaurant.address}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                  <div className={`flex items-center gap-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     <Phone className="h-4 w-4 text-scanner-red" />
                     <span>{restaurant.phone}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                  <div className={`flex items-center gap-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     <Clock className="h-4 w-4 text-scanner-red" />
                     <span>{restaurant.hours.lunch} • {restaurant.hours.dinner}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                  <div className={`flex items-center gap-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     <Mail className="h-4 w-4 text-scanner-red" />
                     <span>{restaurant.email}</span>
                   </div>
@@ -284,7 +289,7 @@ const MenuPage = () => {
 
       {/* Barre de recherche et filtres */}
       <div className="container mx-auto px-4 py-8">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-soft p-6 mb-8">
+        <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-soft p-6 mb-8`}>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
@@ -332,12 +337,21 @@ const MenuPage = () => {
               {filteredItems.map((item, index) => (
                 <Card 
                   key={item.id} 
-                  className={`menu-item opacity-0 hover:shadow-elegant transition-all duration-300 overflow-hidden border-0 bg-white dark:bg-gray-800 shadow-soft`}
+                  className={`menu-item opacity-0 hover:shadow-elegant transition-all duration-300 overflow-hidden border-0 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-soft`}
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <div className="flex flex-col md:flex-row">
                     <div className="md:w-1/3 relative">
-                      <div className="h-48 md:h-full bg-gradient-to-br from-gray-200 to-gray-300 relative overflow-hidden">
+                      <div className="h-48 md:h-full relative overflow-hidden">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = `https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=300&h=200&fit=crop&crop=center`;
+                          }}
+                        />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                         {item.isPopular && (
                           <Badge className="absolute top-3 left-3 bg-scanner-red text-white">
@@ -359,7 +373,7 @@ const MenuPage = () => {
                       <div>
                         <div className="flex items-start justify-between mb-3">
                           <div>
-                            <CardTitle className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                            <CardTitle className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-2`}>
                               {item.name}
                             </CardTitle>
                             <div className="flex items-center gap-2 mb-2">
@@ -384,7 +398,7 @@ const MenuPage = () => {
                           </div>
                         </div>
                         
-                        <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
+                        <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-4 leading-relaxed`}>
                           {item.description}
                         </p>
                         
@@ -408,7 +422,7 @@ const MenuPage = () => {
         </div>
 
         {/* Footer avec signalement */}
-        <div className="text-center mt-16 py-8 border-t border-gray-200 dark:border-gray-700">
+        <div className={`text-center mt-16 py-8 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
           <div className="mb-4">
             <p className="text-gray-500 mb-2">Menu généré par</p>
             <div className="flex justify-center items-center space-x-2">
