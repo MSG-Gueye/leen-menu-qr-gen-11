@@ -7,7 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, ArrowDown, ArrowUp } from 'lucide-react';
+import { Plus, Edit, Trash2, ArrowDown, ArrowUp, Image as ImageIcon, Copy, Eye } from 'lucide-react';
+import { toast } from 'sonner';
+import ImageUpload from './ImageUpload';
 
 const MenuManager = () => {
   const [categories, setCategories] = useState([
@@ -15,22 +17,68 @@ const MenuManager = () => {
       id: 1,
       name: "Entrées",
       items: [
-        { id: 1, name: "Salade de chèvre chaud", description: "Salade verte, crottin de chèvre grillé, noix et miel", price: "12.50" },
-        { id: 2, name: "Soupe à l'oignon", description: "Soupe traditionnelle gratinée au fromage", price: "9.80" }
+        { 
+          id: 1, 
+          name: "Salade de chèvre chaud", 
+          description: "Salade verte, crottin de chèvre grillé, noix et miel", 
+          price: "12.50",
+          image: "/api/placeholder/300/200",
+          allergens: ["Lait", "Fruits à coque"],
+          isVegetarian: true,
+          isPopular: false
+        },
+        { 
+          id: 2, 
+          name: "Soupe à l'oignon", 
+          description: "Soupe traditionnelle gratinée au fromage", 
+          price: "9.80",
+          image: "/api/placeholder/300/200",
+          allergens: ["Lait", "Gluten"],
+          isVegetarian: true,
+          isPopular: true
+        }
       ]
     },
     {
       id: 2,
       name: "Plats principaux",
       items: [
-        { id: 3, name: "Bœuf bourguignon", description: "Mijoté de bœuf aux carottes et champignons", price: "18.90" },
-        { id: 4, name: "Saumon grillé", description: "Filet de saumon grillé, légumes de saison", price: "16.50" }
+        { 
+          id: 3, 
+          name: "Bœuf bourguignon", 
+          description: "Mijoté de bœuf aux carottes et champignons", 
+          price: "18.90",
+          image: "/api/placeholder/300/200",
+          allergens: ["Sulfites"],
+          isVegetarian: false,
+          isPopular: true
+        },
+        { 
+          id: 4, 
+          name: "Saumon grillé", 
+          description: "Filet de saumon grillé, légumes de saison", 
+          price: "16.50",
+          image: "/api/placeholder/300/200",
+          allergens: ["Poisson"],
+          isVegetarian: false,
+          isPopular: false
+        }
       ]
     }
   ]);
 
   const [newCategory, setNewCategory] = useState({ name: '' });
-  const [newItem, setNewItem] = useState({ name: '', description: '', price: '', categoryId: null });
+  const [newItem, setNewItem] = useState({ 
+    name: '', 
+    description: '', 
+    price: '', 
+    categoryId: null,
+    image: null,
+    allergens: '',
+    isVegetarian: false,
+    isPopular: false
+  });
+  const [editingItem, setEditingItem] = useState(null);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
 
@@ -47,6 +95,7 @@ const MenuManager = () => {
     setCategories([...categories, category]);
     setNewCategory({ name: '' });
     setIsCategoryDialogOpen(false);
+    toast.success('Catégorie ajoutée avec succès');
   };
 
   const handleAddItem = (e: React.FormEvent) => {
@@ -57,7 +106,11 @@ const MenuManager = () => {
       id: Date.now(),
       name: newItem.name,
       description: newItem.description,
-      price: newItem.price
+      price: newItem.price,
+      image: newItem.image || "/api/placeholder/300/200",
+      allergens: newItem.allergens.split(',').map(a => a.trim()).filter(a => a),
+      isVegetarian: newItem.isVegetarian,
+      isPopular: newItem.isPopular
     };
 
     setCategories(categories.map(cat => 
@@ -66,8 +119,78 @@ const MenuManager = () => {
         : cat
     ));
 
-    setNewItem({ name: '', description: '', price: '', categoryId: null });
+    setNewItem({ 
+      name: '', 
+      description: '', 
+      price: '', 
+      categoryId: null,
+      image: null,
+      allergens: '',
+      isVegetarian: false,
+      isPopular: false
+    });
     setIsItemDialogOpen(false);
+    toast.success('Plat ajouté avec succès');
+  };
+
+  const handleImageUpload = (file: File) => {
+    const imageUrl = URL.createObjectURL(file);
+    setNewItem({ ...newItem, image: imageUrl });
+  };
+
+  const handleDeleteCategory = (categoryId: number) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) return;
+    
+    setCategories(categories.filter(cat => cat.id !== categoryId));
+    toast.success('Catégorie supprimée');
+  };
+
+  const handleDeleteItem = (categoryId: number, itemId: number) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce plat ?')) return;
+    
+    setCategories(categories.map(cat => 
+      cat.id === categoryId 
+        ? { ...cat, items: cat.items.filter(item => item.id !== itemId) }
+        : cat
+    ));
+    toast.success('Plat supprimé');
+  };
+
+  const handleDuplicateItem = (item: any, categoryId: number) => {
+    const duplicatedItem = {
+      ...item,
+      id: Date.now(),
+      name: `${item.name} (Copie)`
+    };
+
+    setCategories(categories.map(cat => 
+      cat.id === categoryId 
+        ? { ...cat, items: [...cat.items, duplicatedItem] }
+        : cat
+    ));
+    toast.success('Plat dupliqué');
+  };
+
+  const moveItem = (categoryId: number, itemId: number, direction: 'up' | 'down') => {
+    setCategories(categories.map(cat => {
+      if (cat.id === categoryId) {
+        const items = [...cat.items];
+        const index = items.findIndex(item => item.id === itemId);
+        
+        if ((direction === 'up' && index > 0) || (direction === 'down' && index < items.length - 1)) {
+          const newIndex = direction === 'up' ? index - 1 : index + 1;
+          [items[index], items[newIndex]] = [items[newIndex], items[index]];
+        }
+        
+        return { ...cat, items };
+      }
+      return cat;
+    }));
+    toast.success('Ordre modifié');
+  };
+
+  const previewMenu = () => {
+    window.open('/menu/preview', '_blank');
   };
 
   return (
@@ -75,6 +198,10 @@ const MenuManager = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Gestion des menus</h2>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={previewMenu}>
+            <Eye className="h-4 w-4 mr-2" />
+            Aperçu
+          </Button>
           <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="border-scanner-green-600 text-scanner-green-600">
@@ -112,59 +239,102 @@ const MenuManager = () => {
                 Nouveau plat
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Nouveau plat</DialogTitle>
                 <DialogDescription>Ajoutez un nouveau plat à votre menu</DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleAddItem} className="space-y-4">
-                <div>
-                  <Label htmlFor="itemCategory">Catégorie</Label>
-                  <select
-                    id="itemCategory"
-                    value={newItem.categoryId || ''}
-                    onChange={(e) => setNewItem({ ...newItem, categoryId: parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-scanner-green-500"
-                    required
-                  >
-                    <option value="">Sélectionner une catégorie</option>
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
+              <form onSubmit={handleAddItem} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="itemCategory">Catégorie</Label>
+                      <select
+                        id="itemCategory"
+                        value={newItem.categoryId || ''}
+                        onChange={(e) => setNewItem({ ...newItem, categoryId: parseInt(e.target.value) })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-scanner-green-500"
+                        required
+                      >
+                        <option value="">Sélectionner une catégorie</option>
+                        {categories.map(cat => (
+                          <option key={cat.id} value={cat.id}>{cat.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <Label htmlFor="itemName">Nom du plat</Label>
+                      <Input
+                        id="itemName"
+                        value={newItem.name}
+                        onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                        placeholder="Nom du plat"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="itemDescription">Description</Label>
+                      <Textarea
+                        id="itemDescription"
+                        value={newItem.description}
+                        onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+                        placeholder="Description du plat..."
+                        rows={3}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="itemPrice">Prix (€)</Label>
+                      <Input
+                        id="itemPrice"
+                        type="number"
+                        step="0.01"
+                        value={newItem.price}
+                        onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
+                        placeholder="12.50"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="allergens">Allergènes (séparés par des virgules)</Label>
+                      <Input
+                        id="allergens"
+                        value={newItem.allergens}
+                        onChange={(e) => setNewItem({ ...newItem, allergens: e.target.value })}
+                        placeholder="Gluten, Lait, Œufs..."
+                      />
+                    </div>
+                    <div className="flex gap-4">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={newItem.isVegetarian}
+                          onChange={(e) => setNewItem({ ...newItem, isVegetarian: e.target.checked })}
+                          className="rounded"
+                        />
+                        <span className="text-sm">Végétarien</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={newItem.isPopular}
+                          onChange={(e) => setNewItem({ ...newItem, isPopular: e.target.checked })}
+                          className="rounded"
+                        />
+                        <span className="text-sm">Populaire</span>
+                      </label>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label>Image du plat</Label>
+                    <ImageUpload
+                      onImageUpload={handleImageUpload}
+                      currentImage={newItem.image}
+                      className="mt-2"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="itemName">Nom du plat</Label>
-                  <Input
-                    id="itemName"
-                    value={newItem.name}
-                    onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                    placeholder="Nom du plat"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="itemDescription">Description</Label>
-                  <Textarea
-                    id="itemDescription"
-                    value={newItem.description}
-                    onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-                    placeholder="Description du plat..."
-                    rows={3}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="itemPrice">Prix (€)</Label>
-                  <Input
-                    id="itemPrice"
-                    type="number"
-                    step="0.01"
-                    value={newItem.price}
-                    onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
-                    placeholder="12.50"
-                    required
-                  />
-                </div>
+
                 <Button type="submit" className="w-full bg-scanner-green-600 hover:bg-scanner-green-700">
                   Ajouter le plat
                 </Button>
@@ -184,7 +354,12 @@ const MenuManager = () => {
                   <Button variant="ghost" size="sm">
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-red-600 hover:text-red-700"
+                    onClick={() => handleDeleteCategory(category.id)}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -197,24 +372,91 @@ const MenuManager = () => {
                 </div>
               ) : (
                 <div className="divide-y">
-                  {category.items.map((item) => (
+                  {category.items.map((item, index) => (
                     <div key={item.id} className="p-4 hover:bg-gray-50 transition-colors">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900">{item.name}</h4>
-                          <p className="text-gray-600 text-sm mt-1">{item.description}</p>
+                      <div className="flex gap-4">
+                        <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <ImageIcon className="h-8 w-8 text-gray-400" />
+                            </div>
+                          )}
                         </div>
-                        <div className="flex items-center gap-3 ml-4">
-                          <Badge variant="secondary" className="text-lg font-bold">
-                            {item.price}€
-                          </Badge>
-                          <div className="flex gap-1">
-                            <Button variant="ghost" size="sm">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                        
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                                {item.name}
+                                {item.isPopular && (
+                                  <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
+                                    ⭐ Populaire
+                                  </Badge>
+                                )}
+                                {item.isVegetarian && (
+                                  <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                                    🌱 Végétarien
+                                  </Badge>
+                                )}
+                              </h4>
+                              <p className="text-gray-600 text-sm mt-1">{item.description}</p>
+                              {item.allergens && item.allergens.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {item.allergens.map(allergen => (
+                                    <Badge key={allergen} variant="outline" className="text-xs text-orange-600 border-orange-200">
+                                      ⚠️ {allergen}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3 ml-4">
+                              <Badge variant="secondary" className="text-lg font-bold">
+                                {item.price}€
+                              </Badge>
+                              <div className="flex gap-1">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => moveItem(category.id, item.id, 'up')}
+                                  disabled={index === 0}
+                                >
+                                  <ArrowUp className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => moveItem(category.id, item.id, 'down')}
+                                  disabled={index === category.items.length - 1}
+                                >
+                                  <ArrowDown className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => handleDuplicateItem(item, category.id)}
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm">
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="text-red-600 hover:text-red-700"
+                                  onClick={() => handleDeleteItem(category.id, item.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>

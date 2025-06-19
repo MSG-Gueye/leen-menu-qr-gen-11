@@ -1,312 +1,388 @@
 
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { QrCode, Plus, Settings, Menu, Users, BarChart3, TrendingUp, Eye, Zap, Bell, Calendar, Download } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import RestaurantManager from '@/components/RestaurantManager';
-import MenuManager from '@/components/MenuManager';
-import QRGenerator from '@/components/QRGenerator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Users, 
+  Store, 
+  QrCode, 
+  TrendingUp, 
+  Search, 
+  Filter, 
+  Plus, 
+  Eye, 
+  Edit, 
+  Trash2,
+  Download,
+  Mail,
+  Bell,
+  Settings,
+  BarChart3,
+  Calendar,
+  DollarSign
+} from 'lucide-react';
+import { toast } from 'sonner';
+import RestaurantDetailModal from '../components/RestaurantDetailModal';
 
 const AdminDashboard = () => {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('all');
 
-  // Mock data pour les statistiques
-  const stats = {
-    totalRestaurants: 12,
-    totalMenuItems: 156,
-    totalScans: 2847,
-    monthlyGrowth: 23.5,
-    todayScans: 47,
-    activeMenus: 12,
-    pendingUpdates: 3
+  // Mock data étendu
+  const stats = [
+    { title: "Restaurants Total", value: "234", change: "+12%", icon: Store, color: "bg-blue-500" },
+    { title: "Utilisateurs Actifs", value: "1,234", change: "+8%", icon: Users, color: "bg-green-500" },
+    { title: "QR Codes Scannés", value: "45,678", change: "+23%", icon: QrCode, color: "bg-purple-500" },
+    { title: "Revenus Mensuels", value: "€12,450", change: "+15%", icon: DollarSign, color: "bg-orange-500" }
+  ];
+
+  const restaurants = [
+    { 
+      id: 1, 
+      name: "Le Petit Bistro", 
+      email: "contact@petitbistro.fr", 
+      phone: "+33 1 42 33 44 55",
+      address: "123 Rue de la Paix, 75001 Paris",
+      plan: "Premium", 
+      status: "Actif", 
+      menuItems: 45, 
+      totalScans: 1234,
+      lastActive: "Il y a 2h",
+      owner: "Marie Dupont"
+    },
+    { 
+      id: 2, 
+      name: "Sushi Zen", 
+      email: "hello@sushizen.com", 
+      phone: "+33 1 45 67 89 01",
+      address: "456 Avenue des Champs, 75008 Paris",
+      plan: "Gratuit", 
+      status: "Actif", 
+      menuItems: 28, 
+      totalScans: 567,
+      lastActive: "Il y a 1j",
+      owner: "Takeshi Yamamoto"
+    },
+    { 
+      id: 3, 
+      name: "Pizza Corner", 
+      email: "info@pizzacorner.fr", 
+      phone: "+33 1 23 45 67 89",
+      address: "789 Boulevard Saint-Germain, 75006 Paris",
+      plan: "Standard", 
+      status: "Suspendu", 
+      menuItems: 32, 
+      totalScans: 890,
+      lastActive: "Il y a 5j",
+      owner: "Giuseppe Romano"
+    },
+    { 
+      id: 4, 
+      name: "Café de Flore", 
+      email: "contact@cafedeflore.com", 
+      phone: "+33 1 45 48 55 26",
+      address: "172 Boulevard Saint-Germain, 75006 Paris",
+      plan: "Premium", 
+      status: "Actif", 
+      menuItems: 67, 
+      totalScans: 2890,
+      lastActive: "Il y a 30min",
+      owner: "Philippe Martin"
+    }
+  ];
+
+  const recentActivities = [
+    { id: 1, action: "Nouveau restaurant inscrit", restaurant: "Le Petit Bistro", time: "Il y a 2h" },
+    { id: 2, action: "Menu mis à jour", restaurant: "Sushi Zen", time: "Il y a 4h" },
+    { id: 3, action: "QR Code généré", restaurant: "Pizza Corner", time: "Il y a 6h" },
+    { id: 4, action: "Abonnement Premium activé", restaurant: "Café de Flore", time: "Il y a 1j" }
+  ];
+
+  const filteredRestaurants = restaurants.filter(restaurant => {
+    const matchesSearch = restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         restaurant.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         restaurant.owner.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesPlan = selectedPlan === 'all' || restaurant.plan === selectedPlan;
+    const matchesStatus = selectedStatus === 'all' || restaurant.status === selectedStatus;
+    
+    return matchesSearch && matchesPlan && matchesStatus;
+  });
+
+  const handleViewRestaurant = (restaurant) => {
+    setSelectedRestaurant(restaurant);
+    setIsDetailModalOpen(true);
   };
 
-  const recentActivity = [
-    {
-      id: 1,
-      type: 'menu_update',
-      restaurant: 'Le Petit Bistro',
-      action: 'Mise à jour du menu - Ajout de 3 nouveaux plats',
-      time: 'Il y a 2h',
-      icon: <Menu className="h-4 w-4 text-blue-500" />
-    },
-    {
-      id: 2,
-      type: 'qr_generated',
-      restaurant: 'Brasserie Moderne',
-      action: 'Nouveau QR code généré et téléchargé',
-      time: 'Il y a 4h',
-      icon: <QrCode className="h-4 w-4 text-green-500" />
-    },
-    {
-      id: 3,
-      type: 'stats',
-      restaurant: 'Café du Coin',
-      action: '156 nouveaux scans de QR code',
-      time: 'Il y a 6h',
-      icon: <BarChart3 className="h-4 w-4 text-purple-500" />
-    }
-  ];
+  const handleEditRestaurant = (restaurantId) => {
+    toast.info(`Édition du restaurant ${restaurantId} à implémenter`);
+  };
 
-  const quickActions = [
-    {
-      title: "Nouveau restaurant",
-      description: "Ajouter un établissement",
-      icon: <Plus className="h-6 w-6" />,
-      action: () => setActiveTab('restaurants'),
-      color: "bg-gradient-to-r from-blue-500 to-blue-600"
-    },
-    {
-      title: "Créer un menu",
-      description: "Éditeur de menu rapide",
-      icon: <Menu className="h-6 w-6" />,
-      action: () => setActiveTab('menus'),
-      color: "bg-gradient-to-r from-green-500 to-green-600"
-    },
-    {
-      title: "Générer QR",
-      description: "Nouveau QR code",
-      icon: <QrCode className="h-6 w-6" />,
-      action: () => setActiveTab('qrcodes'),
-      color: "bg-gradient-to-r from-purple-500 to-purple-600"
-    },
-    {
-      title: "Analytics",
-      description: "Voir les statistiques",
-      icon: <BarChart3 className="h-6 w-6" />,
-      action: () => setActiveTab('analytics'),
-      color: "bg-gradient-to-r from-orange-500 to-orange-600"
+  const handleDeleteRestaurant = (restaurantId) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce restaurant ?')) {
+      toast.success(`Restaurant ${restaurantId} supprimé`);
     }
-  ];
+  };
+
+  const handleSendEmail = () => {
+    toast.success('Email de bienvenue envoyé à tous les nouveaux restaurants');
+  };
+
+  const handleExportData = () => {
+    toast.success('Export des données en cours...');
+  };
+
+  const handleSendNotification = () => {
+    toast.success('Notification push envoyée à tous les restaurants actifs');
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-      {/* Header amélioré */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-soft">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                onClick={() => navigate('/')}
-                className="flex items-center space-x-3 hover:bg-gray-50 p-3 rounded-xl transition-all"
-              >
-                <div className="p-2 bg-gradient-to-br from-scanner-red to-pink-500 rounded-lg">
-                  <QrCode className="h-6 w-6 text-white" />
-                </div>
-                <div className="text-left">
-                  <div className="text-xl font-bold text-gray-900">Scanner-Leen</div>
-                  <div className="text-sm text-gray-500">Dashboard</div>
-                </div>
-              </Button>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" className="relative">
-                <Bell className="h-5 w-5" />
-                <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-red-500">
-                  3
-                </Badge>
-              </Button>
-              
-              <Button variant="outline" className="flex items-center space-x-2">
-                <Settings className="h-4 w-4" />
-                <span>Paramètres</span>
-              </Button>
-              
-              <div className="w-8 h-8 bg-gradient-to-br from-scanner-blue to-scanner-dark rounded-full flex items-center justify-center text-white font-semibold">
-                A
-              </div>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Dashboard Admin</h1>
+            <p className="text-gray-600 mt-2">Gérez tous les restaurants et utilisateurs Scanner-Leen</p>
+          </div>
+          <div className="flex gap-3">
+            <Button onClick={handleSendEmail} variant="outline">
+              <Mail className="h-4 w-4 mr-2" />
+              Envoyer Email
+            </Button>
+            <Button onClick={handleSendNotification} variant="outline">
+              <Bell className="h-4 w-4 mr-2" />
+              Notification
+            </Button>
+            <Button onClick={handleExportData} variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Exporter
+            </Button>
+            <Button className="bg-scanner-green-600 hover:bg-scanner-green-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Nouveau Restaurant
+            </Button>
           </div>
         </div>
-      </header>
 
-      <div className="container mx-auto px-6 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          {/* Onglets avec design moderne */}
-          <TabsList className="grid w-full grid-cols-5 p-1 bg-gray-100 rounded-xl h-12">
-            <TabsTrigger value="overview" className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg">
-              <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Vue d'ensemble</span>
-            </TabsTrigger>
-            <TabsTrigger value="restaurants" className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Restaurants</span>
-            </TabsTrigger>
-            <TabsTrigger value="menus" className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg">
-              <Menu className="h-4 w-4" />
-              <span className="hidden sm:inline">Menus</span>
-            </TabsTrigger>
-            <TabsTrigger value="qrcodes" className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg">
-              <QrCode className="h-4 w-4" />
-              <span className="hidden sm:inline">QR Codes</span>
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg">
-              <TrendingUp className="h-4 w-4" />
-              <span className="hidden sm:inline">Analytics</span>
-            </TabsTrigger>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {stats.map((stat, index) => (
+            <Card key={index} className="hover:shadow-elegant transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                    <p className="text-sm text-green-600 mt-1">{stat.change} ce mois</p>
+                  </div>
+                  <div className={`p-3 rounded-full ${stat.color}`}>
+                    <stat.icon className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <Tabs defaultValue="restaurants" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="restaurants">Restaurants</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="payments">Paiements</TabsTrigger>
+            <TabsTrigger value="settings">Paramètres</TabsTrigger>
           </TabsList>
 
-          {/* Vue d'ensemble */}
-          <TabsContent value="overview" className="space-y-8">
-            {/* Statistiques principales */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-elegant">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium opacity-90">Restaurants actifs</CardTitle>
-                  <Users className="h-5 w-5 opacity-80" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">{stats.totalRestaurants}</div>
-                  <p className="text-xs opacity-80 mt-1">+2 ce mois-ci</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0 shadow-elegant">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium opacity-90">Plats au menu</CardTitle>
-                  <Menu className="h-5 w-5 opacity-80" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">{stats.totalMenuItems}</div>
-                  <p className="text-xs opacity-80 mt-1">+12 cette semaine</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0 shadow-elegant">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium opacity-90">Scans totaux</CardTitle>
-                  <QrCode className="h-5 w-5 opacity-80" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">{stats.totalScans.toLocaleString()}</div>
-                  <p className="text-xs opacity-80 mt-1">+{stats.todayScans} aujourd'hui</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white border-0 shadow-elegant">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium opacity-90">Croissance</CardTitle>
-                  <TrendingUp className="h-5 w-5 opacity-80" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">+{stats.monthlyGrowth}%</div>
-                  <p className="text-xs opacity-80 mt-1">vs mois dernier</p>
-                </CardContent>
-              </Card>
-            </div>
+          <TabsContent value="restaurants" className="space-y-6">
+            {/* Filtres et recherche */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Rechercher par nom, email ou propriétaire..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <select
+                      value={selectedPlan}
+                      onChange={(e) => setSelectedPlan(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-scanner-green-500"
+                    >
+                      <option value="all">Tous les plans</option>
+                      <option value="Gratuit">Gratuit</option>
+                      <option value="Standard">Standard</option>
+                      <option value="Premium">Premium</option>
+                    </select>
+                    <select
+                      value={selectedStatus}
+                      onChange={(e) => setSelectedStatus(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-scanner-green-500"
+                    >
+                      <option value="all">Tous les statuts</option>
+                      <option value="Actif">Actif</option>
+                      <option value="Suspendu">Suspendu</option>
+                      <option value="Inactif">Inactif</option>
+                    </select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-            {/* Actions rapides */}
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Actions rapides</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {quickActions.map((action, index) => (
-                  <Card 
-                    key={index}
-                    className="cursor-pointer hover:shadow-elegant transition-all duration-300 hover:scale-105 border-0 overflow-hidden"
-                    onClick={action.action}
-                  >
-                    <CardContent className="p-6">
-                      <div className={`w-12 h-12 ${action.color} rounded-xl flex items-center justify-center text-white mb-4 shadow-lg`}>
-                        {action.icon}
-                      </div>
-                      <h3 className="font-semibold text-gray-900 mb-1">{action.title}</h3>
-                      <p className="text-sm text-gray-600">{action.description}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            {/* Activité récente et métriques */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Activité récente */}
-              <Card className="shadow-soft border-0">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Zap className="h-5 w-5 text-scanner-red" />
-                    <span>Activité récente</span>
-                  </CardTitle>
-                  <CardDescription>Dernières actions sur la plateforme</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {recentActivity.map((activity) => (
-                    <div key={activity.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                      <div className="mt-1">{activity.icon}</div>
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900">{activity.restaurant}</p>
-                        <p className="text-sm text-gray-600">{activity.action}</p>
-                        <p className="text-xs text-gray-400 mt-1">{activity.time}</p>
+            {/* Liste des restaurants */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Restaurants ({filteredRestaurants.length})</CardTitle>
+                <CardDescription>Gérez tous les restaurants inscrits sur la plateforme</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {filteredRestaurants.map((restaurant) => (
+                    <div key={restaurant.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-scanner-red to-pink-500 rounded-xl flex items-center justify-center text-white font-bold">
+                            {restaurant.name.charAt(0)}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900">{restaurant.name}</h3>
+                            <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                              <span>{restaurant.email}</span>
+                              <span>{restaurant.phone}</span>
+                              <span>Propriétaire: {restaurant.owner}</span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">{restaurant.address}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-4">
+                          <div className="text-right text-sm">
+                            <p className="text-gray-600">{restaurant.menuItems} plats</p>
+                            <p className="text-gray-600">{restaurant.totalScans} scans</p>
+                            <p className="text-xs text-gray-500">{restaurant.lastActive}</p>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <Badge variant={restaurant.status === 'Actif' ? 'default' : 'secondary'}>
+                              {restaurant.status}
+                            </Badge>
+                            <Badge variant="outline">{restaurant.plan}</Badge>
+                          </div>
+                          
+                          <div className="flex gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleViewRestaurant(restaurant)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleEditRestaurant(restaurant.id)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-red-600 hover:text-red-700"
+                              onClick={() => handleDeleteRestaurant(restaurant.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
-                  <Button variant="outline" className="w-full mt-4">
-                    <Eye className="h-4 w-4 mr-2" />
-                    Voir toute l'activité
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Métriques du jour */}
-              <Card className="shadow-soft border-0">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Calendar className="h-5 w-5 text-scanner-red" />
-                    <span>Aujourd'hui</span>
-                  </CardTitle>
-                  <CardDescription>Métriques de la journée en cours</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Scans de QR codes</span>
-                    <span className="text-2xl font-bold text-scanner-red">{stats.todayScans}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Menus consultés</span>
-                    <span className="text-2xl font-bold text-blue-600">23</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Mises à jour</span>
-                    <span className="text-2xl font-bold text-green-600">5</span>
-                  </div>
-                  <Button className="w-full bg-gradient-to-r from-scanner-red to-pink-500 hover:from-scanner-red/90 hover:to-pink-500/90">
-                    <Download className="h-4 w-4 mr-2" />
-                    Rapport journalier
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
-          <TabsContent value="restaurants">
-            <RestaurantManager />
+          <TabsContent value="analytics">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Analytics Avancées
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Graphiques et métriques détaillées à implémenter...</p>
+              </CardContent>
+            </Card>
           </TabsContent>
 
-          <TabsContent value="menus">
-            <MenuManager />
+          <TabsContent value="payments">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5" />
+                  Gestion des Paiements
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Interface de gestion des abonnements et paiements à implémenter...</p>
+              </CardContent>
+            </Card>
           </TabsContent>
 
-          <TabsContent value="qrcodes">
-            <QRGenerator />
-          </TabsContent>
-
-          <TabsContent value="analytics" className="space-y-8">
-            <div className="text-center py-12">
-              <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Analytics avancées</h3>
-              <p className="text-gray-600 mb-6">Section en cours de développement</p>
-              <Badge variant="outline" className="text-scanner-red border-scanner-red">
-                Bientôt disponible
-              </Badge>
-            </div>
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Paramètres Système
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Configuration système et paramètres globaux à implémenter...</p>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Activités récentes */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Activités Récentes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {recentActivities.map((activity) => (
+                <div key={activity.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-900">{activity.action}</p>
+                    <p className="text-sm text-gray-600">Restaurant: {activity.restaurant}</p>
+                  </div>
+                  <p className="text-xs text-gray-500">{activity.time}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      <RestaurantDetailModal
+        restaurant={selectedRestaurant}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+      />
     </div>
   );
 };
