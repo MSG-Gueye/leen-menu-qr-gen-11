@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -176,26 +175,16 @@ const MenuPage = () => {
     toast.success("Signalement envoyé, merci pour votre retour !");
   };
 
+  // Retirer l'effet d'animation problématique
   useEffect(() => {
-    // Animation d'apparition au scroll
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('animate-fade-in');
-        }
-      });
-    }, observerOptions);
-
-    document.querySelectorAll('.menu-item').forEach(item => {
-      observer.observe(item);
+    // Simple animation d'apparition sans intersection observer
+    const items = document.querySelectorAll('.menu-item');
+    items.forEach((item, index) => {
+      setTimeout(() => {
+        item.classList.add('animate-fade-in');
+        item.classList.remove('opacity-0');
+      }, index * 100);
     });
-
-    return () => observer.disconnect();
   }, [filteredItems]);
 
   return (
@@ -337,8 +326,7 @@ const MenuPage = () => {
               {filteredItems.map((item, index) => (
                 <Card 
                   key={item.id} 
-                  className={`menu-item opacity-0 hover:shadow-elegant transition-all duration-300 overflow-hidden border-0 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-soft`}
-                  style={{ animationDelay: `${index * 100}ms` }}
+                  className={`menu-item opacity-0 hover:shadow-elegant transition-all duration-500 overflow-hidden border-0 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-soft`}
                 >
                   <div className="flex flex-col md:flex-row">
                     <div className="md:w-1/3 relative">
@@ -346,7 +334,7 @@ const MenuPage = () => {
                         <img
                           src={item.image}
                           alt={item.name}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.src = `https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=300&h=200&fit=crop&crop=center`;
@@ -362,9 +350,9 @@ const MenuPage = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => toggleFavorite(item.id)}
-                          className="absolute top-3 right-3 bg-white/80 hover:bg-white"
+                          className="absolute top-3 right-3 bg-white/80 hover:bg-white transition-all duration-200"
                         >
-                          <Heart className={`h-4 w-4 ${favorites.includes(item.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
+                          <Heart className={`h-4 w-4 transition-colors duration-200 ${favorites.includes(item.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
                         </Button>
                       </div>
                     </div>
