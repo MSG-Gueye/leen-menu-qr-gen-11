@@ -2,260 +2,267 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Users, MapPin, Phone, Mail } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, MapPin, Phone, Mail, QrCode, Power, PowerOff } from 'lucide-react';
 import { toast } from 'sonner';
+import { useBusinesses } from '@/hooks/useBusinesses';
+import { useBusinessTypes } from '@/hooks/useBusinessTypes';
+import BusinessForm from './BusinessForm';
 
 const RestaurantManager = () => {
-  const [restaurants, setRestaurants] = useState([
-    {
-      id: 1,
-      name: "Le Petit Bistro",
-      address: "123 Rue de la Paix, 75001 Paris",
-      phone: "01 42 33 44 55",
-      email: "contact@petitbistro.fr",
-      status: "Actif",
-      menuItems: 24,
-      lastUpdate: "2024-01-15"
-    },
-    {
-      id: 2,
-      name: "La Brasserie Moderne",
-      address: "456 Avenue des Champs, 75008 Paris",
-      phone: "01 56 78 90 12",
-      email: "info@brasserie-moderne.fr",
-      status: "Actif",
-      menuItems: 18,
-      lastUpdate: "2024-01-12"
-    }
-  ]);
-
-  const [newRestaurant, setNewRestaurant] = useState({
-    name: '',
-    address: '',
-    phone: '',
-    email: '',
-    description: ''
-  });
-
+  const { businesses, addBusiness, updateBusiness, deleteBusiness, toggleBusinessStatus, generateQRCode, getBusinessStats } = useBusinesses();
+  const { getBusinessType, getBusinessTypeIcon } = useBusinessTypes();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingBusiness, setEditingBusiness] = useState(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  const handleAddRestaurant = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newRestaurant.name.trim()) return;
+  const stats = getBusinessStats();
 
-    const restaurant = {
-      id: Date.now(),
-      name: newRestaurant.name,
-      address: newRestaurant.address,
-      phone: newRestaurant.phone,
-      email: newRestaurant.email,
-      status: "Actif" as const,
-      menuItems: 0,
-      lastUpdate: new Date().toISOString().split('T')[0]
-    };
-
-    setRestaurants([...restaurants, restaurant]);
-    setNewRestaurant({ name: '', address: '', phone: '', email: '', description: '' });
+  const handleAddBusiness = (businessData) => {
+    addBusiness(businessData);
     setIsDialogOpen(false);
-    toast.success("Restaurant ajouté avec succès !");
   };
 
-  const handleDeleteRestaurant = (id: number) => {
-    setRestaurants(restaurants.filter(r => r.id !== id));
-    toast.success("Restaurant supprimé");
+  const handleEditBusiness = (business) => {
+    setEditingBusiness(business);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateBusiness = (businessData) => {
+    if (editingBusiness) {
+      updateBusiness(editingBusiness.id, businessData);
+      setIsEditDialogOpen(false);
+      setEditingBusiness(null);
+    }
+  };
+
+  const handleDeleteBusiness = (id: number) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette entreprise ?')) {
+      deleteBusiness(id);
+    }
+  };
+
+  const handleGenerateQR = (id: number) => {
+    generateQRCode(id);
+  };
+
+  const handleToggleStatus = (id: number) => {
+    toggleBusinessStatus(id);
+  };
+
+  const sendNotificationEmail = (business) => {
+    // Simulation d'envoi d'email
+    toast.success(`Email de notification envoyé à ${business.name} (${business.email})`);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Gestion des restaurants</h2>
-          <p className="text-gray-600">Gérez vos établissements clients</p>
+          <h2 className="text-2xl font-bold">Gestion des entreprises</h2>
+          <p className="text-gray-600">Gérez tous vos établissements clients</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-scanner-green-600 hover:bg-scanner-green-700">
               <Plus className="h-4 w-4 mr-2" />
-              Nouveau restaurant
+              Nouvelle entreprise
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Nouveau restaurant</DialogTitle>
+              <DialogTitle>Nouvelle entreprise</DialogTitle>
               <DialogDescription>
-                Ajoutez un nouveau restaurant à votre plateforme
+                Ajoutez une nouvelle entreprise à votre plateforme
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleAddRestaurant} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Nom du restaurant</Label>
-                <Input
-                  id="name"
-                  value={newRestaurant.name}
-                  onChange={(e) => setNewRestaurant({ ...newRestaurant, name: e.target.value })}
-                  placeholder="Le Petit Bistro"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="address">Adresse</Label>
-                <Input
-                  id="address"
-                  value={newRestaurant.address}
-                  onChange={(e) => setNewRestaurant({ ...newRestaurant, address: e.target.value })}
-                  placeholder="123 Rue de la Paix, 75001 Paris"
-                />
-              </div>
-              <div>
-                <Label htmlFor="phone">Téléphone</Label>
-                <Input
-                  id="phone"
-                  value={newRestaurant.phone}
-                  onChange={(e) => setNewRestaurant({ ...newRestaurant, phone: e.target.value })}
-                  placeholder="01 42 33 44 55"
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={newRestaurant.email}
-                  onChange={(e) => setNewRestaurant({ ...newRestaurant, email: e.target.value })}
-                  placeholder="contact@restaurant.fr"
-                />
-              </div>
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={newRestaurant.description}
-                  onChange={(e) => setNewRestaurant({ ...newRestaurant, description: e.target.value })}
-                  placeholder="Description du restaurant..."
-                  rows={3}
-                />
-              </div>
-              <Button type="submit" className="w-full bg-scanner-green-600 hover:bg-scanner-green-700">
-                Créer le restaurant
-              </Button>
-            </form>
+            <BusinessForm onSubmit={handleAddBusiness} />
           </DialogContent>
         </Dialog>
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Restaurants</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Entreprises</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{restaurants.length}</div>
-            <p className="text-xs text-muted-foreground">établissements actifs</p>
+            <div className="text-2xl font-bold">{stats.total}</div>
+            <p className="text-xs text-muted-foreground">établissements</p>
           </CardContent>
         </Card>
         
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Entreprises Actives</CardTitle>
+            <Power className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.active}</div>
+            <p className="text-xs text-muted-foreground">sur {stats.total} total</p>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Menus Totaux</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {restaurants.reduce((acc, restaurant) => acc + restaurant.menuItems, 0)}
-            </div>
+            <div className="text-2xl font-bold">{stats.totalMenuItems}</div>
             <p className="text-xs text-muted-foreground">plats référencés</p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Restaurants Actifs</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Scans QR</CardTitle>
+            <QrCode className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {restaurants.filter(r => r.status === "Actif").length}
-            </div>
-            <p className="text-xs text-muted-foreground">sur {restaurants.length} total</p>
+            <div className="text-2xl font-bold">{stats.totalScans}</div>
+            <p className="text-xs text-muted-foreground">scans effectués</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Restaurants list */}
+      {/* Businesses list */}
       <div className="space-y-4">
-        {restaurants.map((restaurant) => (
-          <Card key={restaurant.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <h3 className="text-xl font-semibold">{restaurant.name}</h3>
-                    <Badge variant={restaurant.status === "Actif" ? "default" : "secondary"}>
-                      {restaurant.status}
-                    </Badge>
+        {businesses.map((business) => {
+          const businessType = getBusinessType(business.businessType);
+          return (
+            <Card key={business.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{businessType.icon}</span>
+                        <div>
+                          <h3 className="text-xl font-semibold">{business.name}</h3>
+                          <p className="text-sm text-gray-500">{businessType.name}</p>
+                        </div>
+                      </div>
+                      <Badge variant={business.status === "Actif" ? "default" : business.status === "Suspendu" ? "destructive" : "secondary"}>
+                        {business.status}
+                      </Badge>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 mb-3">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        <span>{business.address}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        <span>{business.phone}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4" />
+                        <span>{business.email}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        <span>Propriétaire: {business.owner}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                      <span>{business.menuItems} plats au menu</span>
+                      <span>{business.totalScans || 0} scans QR</span>
+                      <span>Mis à jour: {business.lastUpdate}</span>
+                    </div>
+                    
+                    {business.description && (
+                      <p className="text-sm text-gray-600 mb-3">{business.description}</p>
+                    )}
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      <span>{restaurant.address}</span>
+                  <div className="flex flex-col gap-2 ml-4">
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEditBusiness(business)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleGenerateQR(business.id)}
+                        className="text-blue-600 hover:text-blue-700 hover:border-blue-300"
+                      >
+                        <QrCode className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleToggleStatus(business.id)}
+                        className={business.status === 'Actif' ? "text-orange-600 hover:text-orange-700 hover:border-orange-300" : "text-green-600 hover:text-green-700 hover:border-green-300"}
+                      >
+                        {business.status === 'Actif' ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                      </Button>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      <span>{restaurant.phone}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      <span>{restaurant.email}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      <span>{restaurant.menuItems} plats au menu</span>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => sendNotificationEmail(business)}
+                        className="text-purple-600 hover:text-purple-700 hover:border-purple-300"
+                      >
+                        <Mail className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDeleteBusiness(business.id)}
+                        className="text-red-600 hover:text-red-700 hover:border-red-300"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  
-                  <div className="mt-3 text-xs text-gray-500">
-                    Dernière mise à jour: {restaurant.lastUpdate}
-                  </div>
                 </div>
-                
-                <div className="flex gap-2 ml-4">
-                  <Button variant="outline" size="sm">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleDeleteRestaurant(restaurant.id)}
-                    className="text-red-600 hover:text-red-700 hover:border-red-300"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
-      {restaurants.length === 0 && (
+      {businesses.length === 0 && (
         <div className="text-center py-12">
           <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500 mb-4">Aucun restaurant enregistré</p>
+          <p className="text-gray-500 mb-4">Aucune entreprise enregistrée</p>
           <Button onClick={() => setIsDialogOpen(true)} className="bg-scanner-green-600 hover:bg-scanner-green-700">
             <Plus className="h-4 w-4 mr-2" />
-            Ajouter votre premier restaurant
+            Ajouter votre première entreprise
           </Button>
         </div>
       )}
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Modifier l'entreprise</DialogTitle>
+            <DialogDescription>
+              Modifiez les informations de l'entreprise
+            </DialogDescription>
+          </DialogHeader>
+          {editingBusiness && (
+            <BusinessForm 
+              onSubmit={handleUpdateBusiness} 
+              initialData={editingBusiness}
+              isEditing={true}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
