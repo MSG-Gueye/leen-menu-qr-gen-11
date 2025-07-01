@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Users, 
   Store, 
@@ -26,22 +26,27 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import RestaurantDetailModal from '../components/RestaurantDetailModal';
+import BusinessForm from '../components/BusinessForm';
+import { useBusinesses, Business } from '@/hooks/useBusinesses';
 
 const AdminDashboard = () => {
+  const { businesses, addBusiness, updateBusiness, deleteBusiness, getBusinessStats } = useBusinesses();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [isAddBusinessDialogOpen, setIsAddBusinessDialogOpen] = useState(false);
 
-  // Mock data étendu
-  const stats = [
-    { title: "Restaurants Total", value: "234", change: "+12%", icon: Store, color: "bg-blue-500" },
-    { title: "Utilisateurs Actifs", value: "1,234", change: "+8%", icon: Users, color: "bg-green-500" },
-    { title: "QR Codes Scannés", value: "45,678", change: "+23%", icon: QrCode, color: "bg-purple-500" },
-    { title: "Revenus Mensuels", value: "€12,450", change: "+15%", icon: DollarSign, color: "bg-orange-500" }
+  const stats = getBusinessStats();
+  const realStats = [
+    { title: "Entreprises Total", value: stats.total.toString(), change: "+12%", icon: Store, color: "bg-blue-500" },
+    { title: "Entreprises Actives", value: stats.active.toString(), change: "+8%", icon: Users, color: "bg-green-500" },
+    { title: "QR Codes Scannés", value: stats.totalScans.toString(), change: "+23%", icon: QrCode, color: "bg-purple-500" },
+    { title: "Plats au Menu", value: stats.totalMenuItems.toString(), change: "+15%", icon: DollarSign, color: "bg-orange-500" }
   ];
 
+  // Mock data étendu
   const restaurants = [
     { 
       id: 1, 
@@ -114,6 +119,11 @@ const AdminDashboard = () => {
     return matchesSearch && matchesPlan && matchesStatus;
   });
 
+  const handleAddBusiness = (businessData: Omit<Business, 'id' | 'menuItems' | 'lastUpdate' | 'totalScans'>) => {
+    addBusiness(businessData);
+    setIsAddBusinessDialogOpen(false);
+  };
+
   const handleViewRestaurant = (restaurant) => {
     setSelectedRestaurant(restaurant);
     setIsDetailModalOpen(true);
@@ -163,16 +173,19 @@ const AdminDashboard = () => {
               <Download className="h-4 w-4 mr-2" />
               Exporter
             </Button>
-            <Button className="bg-scanner-green-600 hover:bg-scanner-green-700">
+            <Button 
+              className="bg-scanner-green-600 hover:bg-scanner-green-700"
+              onClick={() => setIsAddBusinessDialogOpen(true)}
+            >
               <Plus className="h-4 w-4 mr-2" />
-              Nouveau Restaurant
+              Nouvelle Entreprise
             </Button>
           </div>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat, index) => (
+          {realStats.map((stat, index) => (
             <Card key={index} className="hover:shadow-elegant transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -383,6 +396,19 @@ const AdminDashboard = () => {
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
       />
+
+      {/* Add Business Dialog */}
+      <Dialog open={isAddBusinessDialogOpen} onOpenChange={setIsAddBusinessDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Nouvelle entreprise</DialogTitle>
+            <DialogDescription>
+              Ajoutez une nouvelle entreprise à votre plateforme
+            </DialogDescription>
+          </DialogHeader>
+          <BusinessForm onSubmit={handleAddBusiness} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
