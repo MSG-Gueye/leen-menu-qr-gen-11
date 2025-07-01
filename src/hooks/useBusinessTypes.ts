@@ -10,7 +10,7 @@ export interface BusinessType {
 }
 
 export const useBusinessTypes = () => {
-  const [businessTypes] = useState<BusinessType[]>([
+  const [businessTypes, setBusinessTypes] = useState<BusinessType[]>([
     {
       id: 'restaurant',
       name: 'Restaurant',
@@ -66,8 +66,58 @@ export const useBusinessTypes = () => {
       icon: '🥘',
       color: 'bg-purple-500',
       description: 'Service traiteur'
+    },
+    {
+      id: 'boulangerie',
+      name: 'Boulangerie',
+      icon: '🥖',
+      color: 'bg-yellow-500',
+      description: 'Boulangerie artisanale'
+    },
+    {
+      id: 'epicerie',
+      name: 'Épicerie',
+      icon: '🛒',
+      color: 'bg-indigo-500',
+      description: 'Épicerie fine'
+    },
+    {
+      id: 'salon_de_the',
+      name: 'Salon de thé',
+      icon: '🫖',
+      color: 'bg-teal-500',
+      description: 'Salon de thé et pâtisseries'
+    },
+    {
+      id: 'food_truck',
+      name: 'Food Truck',
+      icon: '🚚',
+      color: 'bg-cyan-500',
+      description: 'Restauration mobile'
     }
   ]);
+
+  const addBusinessType = (newType: Omit<BusinessType, 'id'>) => {
+    const id = newType.name.toLowerCase().replace(/\s+/g, '_');
+    const businessType: BusinessType = {
+      ...newType,
+      id
+    };
+    setBusinessTypes(prev => [...prev, businessType]);
+    return businessType;
+  };
+
+  const updateBusinessType = (id: string, updatedType: Partial<BusinessType>) => {
+    setBusinessTypes(prev => 
+      prev.map(type => 
+        type.id === id ? { ...type, ...updatedType } : type
+      )
+    );
+  };
+
+  const deleteBusinessType = (id: string) => {
+    setBusinessTypes(prev => prev.filter(type => type.id !== id));
+  };
 
   const getBusinessType = (id: string) => {
     return businessTypes.find(type => type.id === id) || businessTypes[0];
@@ -83,6 +133,9 @@ export const useBusinessTypes = () => {
 
   return {
     businessTypes,
+    addBusinessType,
+    updateBusinessType,
+    deleteBusinessType,
     getBusinessType,
     getBusinessTypeIcon,
     getBusinessTypeColor

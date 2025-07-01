@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,17 +23,21 @@ import {
   Settings,
   BarChart3,
   Calendar,
-  DollarSign
+  DollarSign,
+  Palette
 } from 'lucide-react';
 import { toast } from 'sonner';
 import RestaurantDetailModal from '../components/RestaurantDetailModal';
 import BusinessForm from '../components/BusinessForm';
+import BusinessTypeManager from '../components/BusinessTypeManager';
 import { useBusinesses, Business } from '@/hooks/useBusinesses';
+import { useBusinessTypes } from '@/hooks/useBusinessTypes';
 
 const AdminDashboard = () => {
   const { businesses, addBusiness, updateBusiness, deleteBusiness, getBusinessStats } = useBusinesses();
+  const { getBusinessType } = useBusinessTypes();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [selectedRestaurant, setSelectedRestaurant] = useState<any>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
@@ -46,64 +51,28 @@ const AdminDashboard = () => {
     { title: "Plats au Menu", value: stats.totalMenuItems.toString(), change: "+15%", icon: DollarSign, color: "bg-orange-500" }
   ];
 
-  // Mock data étendu
-  const restaurants = [
-    { 
-      id: 1, 
-      name: "Le Petit Bistro", 
-      email: "contact@petitbistro.fr", 
-      phone: "+33 1 42 33 44 55",
-      address: "123 Rue de la Paix, 75001 Paris",
-      plan: "Premium", 
-      status: "Actif", 
-      menuItems: 45, 
-      totalScans: 1234,
-      lastActive: "Il y a 2h",
-      owner: "Marie Dupont"
-    },
-    { 
-      id: 2, 
-      name: "Sushi Zen", 
-      email: "hello@sushizen.com", 
-      phone: "+33 1 45 67 89 01",
-      address: "456 Avenue des Champs, 75008 Paris",
-      plan: "Gratuit", 
-      status: "Actif", 
-      menuItems: 28, 
-      totalScans: 567,
-      lastActive: "Il y a 1j",
-      owner: "Takeshi Yamamoto"
-    },
-    { 
-      id: 3, 
-      name: "Pizza Corner", 
-      email: "info@pizzacorner.fr", 
-      phone: "+33 1 23 45 67 89",
-      address: "789 Boulevard Saint-Germain, 75006 Paris",
-      plan: "Standard", 
-      status: "Suspendu", 
-      menuItems: 32, 
-      totalScans: 890,
-      lastActive: "Il y a 5j",
-      owner: "Giuseppe Romano"
-    },
-    { 
-      id: 4, 
-      name: "Café de Flore", 
-      email: "contact@cafedeflore.com", 
-      phone: "+33 1 45 48 55 26",
-      address: "172 Boulevard Saint-Germain, 75006 Paris",
-      plan: "Premium", 
-      status: "Actif", 
-      menuItems: 67, 
-      totalScans: 2890,
-      lastActive: "Il y a 30min",
-      owner: "Philippe Martin"
-    }
-  ];
+  // Convertir les données des businesses en format restaurant pour compatibilité
+  const restaurants = businesses.map(business => {
+    const businessType = getBusinessType(business.businessType);
+    return {
+      id: business.id,
+      name: business.name,
+      email: business.email,
+      phone: business.phone,
+      address: business.address,
+      plan: "Standard", // Valeur par défaut
+      status: business.status,
+      menuItems: business.menuItems,
+      totalScans: business.totalScans || 0,
+      lastActive: `Mis à jour le ${business.lastUpdate}`,
+      owner: business.owner,
+      businessType: businessType.name,
+      icon: businessType.icon
+    };
+  });
 
   const recentActivities = [
-    { id: 1, action: "Nouveau restaurant inscrit", restaurant: "Le Petit Bistro", time: "Il y a 2h" },
+    { id: 1, action: "Nouvelle entreprise inscrite", restaurant: "Le Petit Bistro", time: "Il y a 2h" },
     { id: 2, action: "Menu mis à jour", restaurant: "Sushi Zen", time: "Il y a 4h" },
     { id: 3, action: "QR Code généré", restaurant: "Pizza Corner", time: "Il y a 6h" },
     { id: 4, action: "Abonnement Premium activé", restaurant: "Café de Flore", time: "Il y a 1j" }
@@ -124,31 +93,57 @@ const AdminDashboard = () => {
     setIsAddBusinessDialogOpen(false);
   };
 
-  const handleViewRestaurant = (restaurant) => {
+  const handleViewRestaurant = (restaurant: any) => {
     setSelectedRestaurant(restaurant);
     setIsDetailModalOpen(true);
   };
 
-  const handleEditRestaurant = (restaurantId) => {
-    toast.info(`Édition du restaurant ${restaurantId} à implémenter`);
+  const handleEditRestaurant = (restaurantId: number) => {
+    const business = businesses.find(b => b.id === restaurantId);
+    if (business) {
+      toast.info(`Édition de ${business.name} - Fonctionnalité à implémenter`);
+    }
   };
 
-  const handleDeleteRestaurant = (restaurantId) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce restaurant ?')) {
-      toast.success(`Restaurant ${restaurantId} supprimé`);
+  const handleDeleteRestaurant = (restaurantId: number) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette entreprise ?')) {
+      deleteBusiness(restaurantId);
     }
   };
 
   const handleSendEmail = () => {
-    toast.success('Email de bienvenue envoyé à tous les nouveaux restaurants');
+    toast.success('Email de bienvenue envoyé à toutes les nouvelles entreprises');
   };
 
   const handleExportData = () => {
-    toast.success('Export des données en cours...');
+    // Créer un CSV avec les données des entreprises
+    const csvData = businesses.map(business => ({
+      Nom: business.name,
+      Type: getBusinessType(business.businessType).name,
+      Email: business.email,
+      Téléphone: business.phone,
+      Propriétaire: business.owner,
+      Statut: business.status,
+      'Dernière mise à jour': business.lastUpdate
+    }));
+    
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + Object.keys(csvData[0] || {}).join(",") + "\n"
+      + csvData.map(row => Object.values(row).join(",")).join("\n");
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "entreprises_scanner_leen.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success('Export des données terminé');
   };
 
   const handleSendNotification = () => {
-    toast.success('Notification push envoyée à tous les restaurants actifs');
+    toast.success('Notification push envoyée à toutes les entreprises actives');
   };
 
   return (
@@ -158,7 +153,7 @@ const AdminDashboard = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Dashboard Admin</h1>
-            <p className="text-gray-600 mt-2">Gérez tous les restaurants et utilisateurs Scanner-Leen</p>
+            <p className="text-gray-600 mt-2">Gérez toutes les entreprises Scanner-Leen</p>
           </div>
           <div className="flex gap-3">
             <Button onClick={handleSendEmail} variant="outline">
@@ -203,15 +198,16 @@ const AdminDashboard = () => {
           ))}
         </div>
 
-        <Tabs defaultValue="restaurants" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="restaurants">Restaurants</TabsTrigger>
+        <Tabs defaultValue="businesses" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="businesses">Entreprises</TabsTrigger>
+            <TabsTrigger value="types">Types</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="payments">Paiements</TabsTrigger>
             <TabsTrigger value="settings">Paramètres</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="restaurants" className="space-y-6">
+          <TabsContent value="businesses" className="space-y-6">
             {/* Filtres et recherche */}
             <Card>
               <CardContent className="p-6">
@@ -251,11 +247,11 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Liste des restaurants */}
+            {/* Liste des entreprises */}
             <Card>
               <CardHeader>
-                <CardTitle>Restaurants ({filteredRestaurants.length})</CardTitle>
-                <CardDescription>Gérez tous les restaurants inscrits sur la plateforme</CardDescription>
+                <CardTitle>Entreprises ({filteredRestaurants.length})</CardTitle>
+                <CardDescription>Gérez toutes les entreprises inscrites sur la plateforme</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -263,11 +259,16 @@ const AdminDashboard = () => {
                     <div key={restaurant.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-scanner-red to-pink-500 rounded-xl flex items-center justify-center text-white font-bold">
-                            {restaurant.name.charAt(0)}
+                          <div className="w-12 h-12 bg-gradient-to-br from-scanner-red to-pink-500 rounded-xl flex items-center justify-center text-white text-2xl">
+                            {restaurant.icon || restaurant.name.charAt(0)}
                           </div>
                           <div>
-                            <h3 className="font-semibold text-gray-900">{restaurant.name}</h3>
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-gray-900">{restaurant.name}</h3>
+                              <Badge variant="outline" className="text-xs">
+                                {restaurant.businessType}
+                              </Badge>
+                            </div>
                             <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
                               <span>{restaurant.email}</span>
                               <span>{restaurant.phone}</span>
@@ -319,9 +320,27 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                   ))}
+                  
+                  {filteredRestaurants.length === 0 && (
+                    <div className="text-center py-12">
+                      <Store className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500 mb-4">Aucune entreprise trouvée</p>
+                      <Button 
+                        onClick={() => setIsAddBusinessDialogOpen(true)}
+                        className="bg-scanner-green-600 hover:bg-scanner-green-700"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Ajouter votre première entreprise
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="types">
+            <BusinessTypeManager />
           </TabsContent>
 
           <TabsContent value="analytics">
@@ -381,7 +400,7 @@ const AdminDashboard = () => {
                 <div key={activity.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <p className="font-medium text-gray-900">{activity.action}</p>
-                    <p className="text-sm text-gray-600">Restaurant: {activity.restaurant}</p>
+                    <p className="text-sm text-gray-600">Entreprise: {activity.restaurant}</p>
                   </div>
                   <p className="text-xs text-gray-500">{activity.time}</p>
                 </div>
