@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Users, MapPin, Phone, Mail, QrCode, Power, PowerOff } from 'lucide-react';
 import { toast } from 'sonner';
-import { useBusinesses } from '@/hooks/useBusinesses';
+import { useBusinesses, Business } from '@/hooks/useBusinesses';
 import { useBusinessTypes } from '@/hooks/useBusinessTypes';
 import BusinessForm from './BusinessForm';
 
@@ -14,22 +14,22 @@ const RestaurantManager = () => {
   const { businesses, addBusiness, updateBusiness, deleteBusiness, toggleBusinessStatus, generateQRCode, getBusinessStats } = useBusinesses();
   const { getBusinessType, getBusinessTypeIcon } = useBusinessTypes();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingBusiness, setEditingBusiness] = useState(null);
+  const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const stats = getBusinessStats();
 
-  const handleAddBusiness = (businessData) => {
+  const handleAddBusiness = (businessData: Omit<Business, 'id' | 'menuItems' | 'lastUpdate' | 'totalScans'>) => {
     addBusiness(businessData);
     setIsDialogOpen(false);
   };
 
-  const handleEditBusiness = (business) => {
+  const handleEditBusiness = (business: Business) => {
     setEditingBusiness(business);
     setIsEditDialogOpen(true);
   };
 
-  const handleUpdateBusiness = (businessData) => {
+  const handleUpdateBusiness = (businessData: Omit<Business, 'id' | 'menuItems' | 'lastUpdate' | 'totalScans'>) => {
     if (editingBusiness) {
       updateBusiness(editingBusiness.id, businessData);
       setIsEditDialogOpen(false);
@@ -51,7 +51,7 @@ const RestaurantManager = () => {
     toggleBusinessStatus(id);
   };
 
-  const sendNotificationEmail = (business) => {
+  const sendNotificationEmail = (business: Business) => {
     // Simulation d'envoi d'email
     toast.success(`Email de notification envoyé à ${business.name} (${business.email})`);
   };
