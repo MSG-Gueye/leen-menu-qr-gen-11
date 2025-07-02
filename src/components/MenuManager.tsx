@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -79,8 +78,10 @@ const MenuManager = () => {
     isPopular: false
   });
   const [editingItem, setEditingItem] = useState(null);
+  const [editingCategory, setEditingCategory] = useState(null);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
+  const [isEditCategoryDialogOpen, setIsEditCategoryDialogOpen] = useState(false);
 
   const handleAddCategory = (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,6 +97,26 @@ const MenuManager = () => {
     setNewCategory({ name: '' });
     setIsCategoryDialogOpen(false);
     toast.success('Catégorie ajoutée avec succès');
+  };
+
+  const handleEditCategory = (category: any) => {
+    setEditingCategory({ ...category });
+    setIsEditCategoryDialogOpen(true);
+  };
+
+  const handleUpdateCategory = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCategory?.name.trim()) return;
+
+    setCategories(categories.map(cat => 
+      cat.id === editingCategory.id 
+        ? { ...cat, name: editingCategory.name }
+        : cat
+    ));
+
+    setEditingCategory(null);
+    setIsEditCategoryDialogOpen(false);
+    toast.success('Catégorie mise à jour avec succès');
   };
 
   const handleAddItem = (e: React.FormEvent) => {
@@ -133,9 +154,61 @@ const MenuManager = () => {
     toast.success('Plat ajouté avec succès');
   };
 
+  const handleEditItem = (item: any, categoryId: number) => {
+    setEditingItem({
+      ...item,
+      categoryId,
+      allergens: item.allergens.join(', ')
+    });
+    setIsItemDialogOpen(true);
+  };
+
+  const handleUpdateItem = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem?.name.trim() || !editingItem.categoryId) return;
+
+    const updatedItem = {
+      ...editingItem,
+      allergens: editingItem.allergens.split(',').map((a: string) => a.trim()).filter((a: string) => a)
+    };
+
+    setCategories(categories.map(cat => 
+      cat.id === editingItem.categoryId 
+        ? { 
+            ...cat, 
+            items: cat.items.map(item => 
+              item.id === editingItem.id ? updatedItem : item
+            )
+          }
+        : cat
+    ));
+
+    setEditingItem(null);
+    setIsItemDialogOpen(false);
+    toast.success('Plat mis à jour avec succès');
+  };
+
   const handleImageUpload = (file: File) => {
     const imageUrl = URL.createObjectURL(file);
-    setNewItem({ ...newItem, image: imageUrl });
+    if (editingItem) {
+      setEditingItem({ ...editingItem, image: imageUrl });
+    } else {
+      setNewItem({ ...newItem, image: imageUrl });
+    }
+  };
+
+  const resetItemForm = () => {
+    setEditingItem(null);
+    setNewItem({ 
+      name: '', 
+      description: '', 
+      price: '', 
+      categoryId: null,
+      image: null,
+      allergens: '',
+      isVegetarian: false,
+      isPopular: false
+    });
   };
 
   const handleDeleteCategory = (categoryId: number) => {
@@ -193,6 +266,9 @@ const MenuManager = () => {
     window.open('/menu/preview', '_blank');
   };
 
+  const currentItem = editingItem || newItem;
+  const isEditing = !!editingItem;
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -232,7 +308,10 @@ const MenuManager = () => {
             </DialogContent>
           </Dialog>
 
-          <Dialog open={isItemDialogOpen} onOpenChange={setIsItemDialogOpen}>
+          <Dialog open={isItemDialogOpen} onOpenChange={(open) => {
+            setIsItemDialogOpen(open);
+            if (!open) resetItemForm();
+          }}>
             <DialogTrigger asChild>
               <Button className="bg-scanner-green-600 hover:bg-scanner-green-700">
                 <Plus className="h-4 w-4 mr-2" />
@@ -241,18 +320,27 @@ const MenuManager = () => {
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Nouveau plat</DialogTitle>
-                <DialogDescription>Ajoutez un nouveau plat à votre menu</DialogDescription>
+                <DialogTitle>{isEditing ? 'Modifier le plat' : 'Nouveau plat'}</DialogTitle>
+                <DialogDescription>
+                  {isEditing ? 'Modifiez les informations de ce plat' : 'Ajoutez un nouveau plat à votre menu'}
+                </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleAddItem} className="space-y-6">
+              <form onSubmit={isEditing ? handleUpdateItem : handleAddItem} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="itemCategory">Catégorie</Label>
                       <select
                         id="itemCategory"
-                        value={newItem.categoryId || ''}
-                        onChange={(e) => setNewItem({ ...newItem, categoryId: parseInt(e.target.value) })}
+                        value={currentItem.categoryId || ''}
+                        onChange={(e) => {
+                          const categoryId = parseInt(e.target.value);
+                          if (isEditing) {
+                            setEditingItem({ ...editingItem, categoryId });
+                          } else {
+                            setNewItem({ ...newItem, categoryId });
+                          }
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-scanner-green-500"
                         required
                       >
@@ -266,8 +354,14 @@ const MenuManager = () => {
                       <Label htmlFor="itemName">Nom du plat</Label>
                       <Input
                         id="itemName"
-                        value={newItem.name}
-                        onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                        value={currentItem.name}
+                        onChange={(e) => {
+                          if (isEditing) {
+                            setEditingItem({ ...editingItem, name: e.target.value });
+                          } else {
+                            setNewItem({ ...newItem, name: e.target.value });
+                          }
+                        }}
                         placeholder="Nom du plat"
                         required
                       />
@@ -276,8 +370,14 @@ const MenuManager = () => {
                       <Label htmlFor="itemDescription">Description</Label>
                       <Textarea
                         id="itemDescription"
-                        value={newItem.description}
-                        onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+                        value={currentItem.description}
+                        onChange={(e) => {
+                          if (isEditing) {
+                            setEditingItem({ ...editingItem, description: e.target.value });
+                          } else {
+                            setNewItem({ ...newItem, description: e.target.value });
+                          }
+                        }}
                         placeholder="Description du plat..."
                         rows={3}
                       />
@@ -288,8 +388,14 @@ const MenuManager = () => {
                         id="itemPrice"
                         type="number"
                         step="0.01"
-                        value={newItem.price}
-                        onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
+                        value={currentItem.price}
+                        onChange={(e) => {
+                          if (isEditing) {
+                            setEditingItem({ ...editingItem, price: e.target.value });
+                          } else {
+                            setNewItem({ ...newItem, price: e.target.value });
+                          }
+                        }}
                         placeholder="12.50"
                         required
                       />
@@ -298,8 +404,14 @@ const MenuManager = () => {
                       <Label htmlFor="allergens">Allergènes (séparés par des virgules)</Label>
                       <Input
                         id="allergens"
-                        value={newItem.allergens}
-                        onChange={(e) => setNewItem({ ...newItem, allergens: e.target.value })}
+                        value={currentItem.allergens}
+                        onChange={(e) => {
+                          if (isEditing) {
+                            setEditingItem({ ...editingItem, allergens: e.target.value });
+                          } else {
+                            setNewItem({ ...newItem, allergens: e.target.value });
+                          }
+                        }}
                         placeholder="Gluten, Lait, Œufs..."
                       />
                     </div>
@@ -307,8 +419,14 @@ const MenuManager = () => {
                       <label className="flex items-center gap-2">
                         <input
                           type="checkbox"
-                          checked={newItem.isVegetarian}
-                          onChange={(e) => setNewItem({ ...newItem, isVegetarian: e.target.checked })}
+                          checked={currentItem.isVegetarian}
+                          onChange={(e) => {
+                            if (isEditing) {
+                              setEditingItem({ ...editingItem, isVegetarian: e.target.checked });
+                            } else {
+                              setNewItem({ ...newItem, isVegetarian: e.target.checked });
+                            }
+                          }}
                           className="rounded"
                         />
                         <span className="text-sm">Végétarien</span>
@@ -316,8 +434,14 @@ const MenuManager = () => {
                       <label className="flex items-center gap-2">
                         <input
                           type="checkbox"
-                          checked={newItem.isPopular}
-                          onChange={(e) => setNewItem({ ...newItem, isPopular: e.target.checked })}
+                          checked={currentItem.isPopular}
+                          onChange={(e) => {
+                            if (isEditing) {
+                              setEditingItem({ ...editingItem, isPopular: e.target.checked });
+                            } else {
+                              setNewItem({ ...newItem, isPopular: e.target.checked });
+                            }
+                          }}
                           className="rounded"
                         />
                         <span className="text-sm">Populaire</span>
@@ -329,20 +453,45 @@ const MenuManager = () => {
                     <Label>Image du plat</Label>
                     <ImageUpload
                       onImageUpload={handleImageUpload}
-                      currentImage={newItem.image}
+                      currentImage={currentItem.image}
                       className="mt-2"
                     />
                   </div>
                 </div>
 
                 <Button type="submit" className="w-full bg-scanner-green-600 hover:bg-scanner-green-700">
-                  Ajouter le plat
+                  {isEditing ? 'Mettre à jour le plat' : 'Ajouter le plat'}
                 </Button>
               </form>
             </DialogContent>
           </Dialog>
         </div>
       </div>
+
+      {/* Edit Category Dialog */}
+      <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier la catégorie</DialogTitle>
+            <DialogDescription>Modifiez le nom de cette catégorie</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleUpdateCategory} className="space-y-4">
+            <div>
+              <Label htmlFor="editCategoryName">Nom de la catégorie</Label>
+              <Input
+                id="editCategoryName"
+                value={editingCategory?.name || ''}
+                onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
+                placeholder="Entrées, Plats, Desserts..."
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full bg-scanner-green-600 hover:bg-scanner-green-700">
+              Modifier la catégorie
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <div className="space-y-6">
         {categories.map((category) => (
@@ -351,7 +500,7 @@ const MenuManager = () => {
               <div className="flex justify-between items-center">
                 <CardTitle className="text-xl text-scanner-green-800">{category.name}</CardTitle>
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" onClick={() => handleEditCategory(category)}>
                     <Edit className="h-4 w-4" />
                   </Button>
                   <Button 
@@ -444,7 +593,11 @@ const MenuManager = () => {
                                 >
                                   <Copy className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="sm">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => handleEditItem(item, category.id)}
+                                >
                                   <Edit className="h-4 w-4" />
                                 </Button>
                                 <Button 
