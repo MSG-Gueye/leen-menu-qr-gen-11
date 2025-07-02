@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,9 +50,29 @@ const RestaurantManager = () => {
     toggleBusinessStatus(id);
   };
 
+  const handleSuspendForNonPayment = (id: number) => {
+    const business = businesses.find(b => b.id === id);
+    if (confirm(`Êtes-vous sûr de vouloir suspendre ${business?.name} pour non-paiement ?`)) {
+      updateBusiness(id, { status: 'Suspendu' });
+      toast.success(`${business?.name} suspendu pour non-paiement`);
+    }
+  };
+
+  const handleReactivateAfterPayment = (id: number) => {
+    const business = businesses.find(b => b.id === id);
+    if (confirm(`Confirmer la réactivation de ${business?.name} après paiement ?`)) {
+      updateBusiness(id, { status: 'Actif' });
+      toast.success(`${business?.name} réactivé après paiement`);
+    }
+  };
+
   const sendNotificationEmail = (business: Business) => {
     // Simulation d'envoi d'email
     toast.success(`Email de notification envoyé à ${business.name} (${business.email})`);
+  };
+
+  const sendPaymentReminder = (business: Business) => {
+    toast.success(`Rappel de paiement envoyé à ${business.name}`);
   };
 
   return (
@@ -109,12 +128,14 @@ const RestaurantManager = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Menus Totaux</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Suspendues</CardTitle>
+            <PowerOff className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalMenuItems}</div>
-            <p className="text-xs text-muted-foreground">plats référencés</p>
+            <div className="text-2xl font-bold text-red-600">
+              {businesses.filter(b => b.status === 'Suspendu').length}
+            </div>
+            <p className="text-xs text-muted-foreground">non-paiement</p>
           </CardContent>
         </Card>
         
@@ -150,6 +171,11 @@ const RestaurantManager = () => {
                       <Badge variant={business.status === "Actif" ? "default" : business.status === "Suspendu" ? "destructive" : "secondary"}>
                         {business.status}
                       </Badge>
+                      {business.status === "Suspendu" && (
+                        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                          Non-paiement
+                        </Badge>
+                      )}
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 mb-3">
@@ -209,14 +235,45 @@ const RestaurantManager = () => {
                       </Button>
                     </div>
                     <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => sendNotificationEmail(business)}
-                        className="text-purple-600 hover:text-purple-700 hover:border-purple-300"
-                      >
-                        <Mail className="h-4 w-4" />
-                      </Button>
+                      {business.status === 'Suspendu' ? (
+                        <>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleReactivateAfterPayment(business.id)}
+                            className="text-green-600 hover:text-green-700 hover:border-green-300"
+                          >
+                            <Power className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => sendPaymentReminder(business)}
+                            className="text-yellow-600 hover:text-yellow-700 hover:border-yellow-300"
+                          >
+                            <Mail className="h-4 w-4" />
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => sendNotificationEmail(business)}
+                            className="text-purple-600 hover:text-purple-700 hover:border-purple-300"
+                          >
+                            <Mail className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleSuspendForNonPayment(business.id)}
+                            className="text-orange-600 hover:text-orange-700 hover:border-orange-300"
+                          >
+                            <PowerOff className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
                       <Button 
                         variant="outline" 
                         size="sm"

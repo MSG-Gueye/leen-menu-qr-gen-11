@@ -1,504 +1,497 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, ArrowDown, ArrowUp, Image as ImageIcon, Copy, Eye } from 'lucide-react';
+import { Plus, Edit, Trash2, Menu, ChefHat, Euro, Clock, Users } from 'lucide-react';
 import { toast } from 'sonner';
-import ImageUpload from './ImageUpload';
+
+interface Dish {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  available: boolean;
+  preparationTime: number;
+  allergens: string[];
+  isPopular: boolean;
+}
+
+interface Category {
+  id: number;
+  name: string;
+  description: string;
+  order: number;
+  isActive: boolean;
+}
 
 const MenuManager = () => {
-  const [categories, setCategories] = useState([
+  const [dishes, setDishes] = useState<Dish[]>([
     {
       id: 1,
-      name: "Entrées",
-      items: [
-        { 
-          id: 1, 
-          name: "Salade de chèvre chaud", 
-          description: "Salade verte, crottin de chèvre grillé, noix et miel", 
-          price: "12.50",
-          image: "/api/placeholder/300/200",
-          allergens: ["Lait", "Fruits à coque"],
-          isVegetarian: true,
-          isPopular: false
-        },
-        { 
-          id: 2, 
-          name: "Soupe à l'oignon", 
-          description: "Soupe traditionnelle gratinée au fromage", 
-          price: "9.80",
-          image: "/api/placeholder/300/200",
-          allergens: ["Lait", "Gluten"],
-          isVegetarian: true,
-          isPopular: true
-        }
-      ]
+      name: "Pizza Margherita",
+      description: "Tomate, mozzarella, basilic frais",
+      price: 12.50,
+      category: "Plats principaux",
+      available: true,
+      preparationTime: 15,
+      allergens: ["Gluten", "Lactose"],
+      isPopular: true
     },
     {
       id: 2,
-      name: "Plats principaux",
-      items: [
-        { 
-          id: 3, 
-          name: "Bœuf bourguignon", 
-          description: "Mijoté de bœuf aux carottes et champignons", 
-          price: "18.90",
-          image: "/api/placeholder/300/200",
-          allergens: ["Sulfites"],
-          isVegetarian: false,
-          isPopular: true
-        },
-        { 
-          id: 4, 
-          name: "Saumon grillé", 
-          description: "Filet de saumon grillé, légumes de saison", 
-          price: "16.50",
-          image: "/api/placeholder/300/200",
-          allergens: ["Poisson"],
-          isVegetarian: false,
-          isPopular: false
-        }
-      ]
+      name: "Salade César",
+      description: "Salade romaine, parmesan, croûtons, sauce césar",
+      price: 9.90,
+      category: "Entrées",
+      available: true,
+      preparationTime: 10,
+      allergens: ["Gluten", "Lactose", "Œuf"],
+      isPopular: false
     }
   ]);
 
-  const [newCategory, setNewCategory] = useState({ name: '' });
-  const [newItem, setNewItem] = useState({ 
-    name: '', 
-    description: '', 
-    price: '', 
-    categoryId: null,
-    image: null,
+  const [categories, setCategories] = useState<Category[]>([
+    { id: 1, name: "Entrées", description: "Plats d'entrée", order: 1, isActive: true },
+    { id: 2, name: "Plats principaux", description: "Plats de résistance", order: 2, isActive: true },
+    { id: 3, name: "Desserts", description: "Desserts et pâtisseries", order: 3, isActive: true },
+    { id: 4, name: "Boissons", description: "Boissons chaudes et froides", order: 4, isActive: true }
+  ]);
+
+  const [isAddDishOpen, setIsAddDishOpen] = useState(false);
+  const [isEditDishOpen, setIsEditDishOpen] = useState(false);
+  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
+  const [editingDish, setEditingDish] = useState<Dish | null>(null);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+
+  const [dishForm, setDishForm] = useState({
+    name: '',
+    description: '',
+    price: '',
+    category: '',
+    preparationTime: '',
     allergens: '',
-    isVegetarian: false,
+    available: true,
     isPopular: false
   });
-  const [editingItem, setEditingItem] = useState(null);
-  const [editingCategory, setEditingCategory] = useState(null);
-  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
-  const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
-  const [isEditCategoryDialogOpen, setIsEditCategoryDialogOpen] = useState(false);
 
-  const handleAddCategory = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCategory.name.trim()) return;
+  const [categoryForm, setCategoryForm] = useState({
+    name: '',
+    description: '',
+    order: '',
+    isActive: true
+  });
 
-    const category = {
-      id: Date.now(),
-      name: newCategory.name,
-      items: []
-    };
-
-    setCategories([...categories, category]);
-    setNewCategory({ name: '' });
-    setIsCategoryDialogOpen(false);
-    toast.success('Catégorie ajoutée avec succès');
-  };
-
-  const handleEditCategory = (category: any) => {
-    setEditingCategory({ ...category });
-    setIsEditCategoryDialogOpen(true);
-  };
-
-  const handleUpdateCategory = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingCategory?.name.trim()) return;
-
-    setCategories(categories.map(cat => 
-      cat.id === editingCategory.id 
-        ? { ...cat, name: editingCategory.name }
-        : cat
-    ));
-
-    setEditingCategory(null);
-    setIsEditCategoryDialogOpen(false);
-    toast.success('Catégorie mise à jour avec succès');
-  };
-
-  const handleAddItem = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newItem.name.trim() || !newItem.categoryId) return;
-
-    const item = {
-      id: Date.now(),
-      name: newItem.name,
-      description: newItem.description,
-      price: newItem.price,
-      image: newItem.image || "/api/placeholder/300/200",
-      allergens: newItem.allergens.split(',').map(a => a.trim()).filter(a => a),
-      isVegetarian: newItem.isVegetarian,
-      isPopular: newItem.isPopular
-    };
-
-    setCategories(categories.map(cat => 
-      cat.id === newItem.categoryId 
-        ? { ...cat, items: [...cat.items, item] }
-        : cat
-    ));
-
-    setNewItem({ 
-      name: '', 
-      description: '', 
-      price: '', 
-      categoryId: null,
-      image: null,
+  const resetDishForm = () => {
+    setDishForm({
+      name: '',
+      description: '',
+      price: '',
+      category: '',
+      preparationTime: '',
       allergens: '',
-      isVegetarian: false,
+      available: true,
       isPopular: false
     });
-    setIsItemDialogOpen(false);
-    toast.success('Plat ajouté avec succès');
   };
 
-  const handleEditItem = (item: any, categoryId: number) => {
-    setEditingItem({
-      ...item,
-      categoryId,
-      allergens: item.allergens.join(', ')
+  const resetCategoryForm = () => {
+    setCategoryForm({
+      name: '',
+      description: '',
+      order: '',
+      isActive: true
     });
-    setIsItemDialogOpen(true);
   };
 
-  const handleUpdateItem = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingItem?.name.trim() || !editingItem.categoryId) return;
+  const handleAddDish = () => {
+    if (!dishForm.name || !dishForm.price || !dishForm.category) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
 
-    const updatedItem = {
-      ...editingItem,
-      allergens: editingItem.allergens.split(',').map((a: string) => a.trim()).filter((a: string) => a)
+    const newDish: Dish = {
+      id: Date.now(),
+      name: dishForm.name,
+      description: dishForm.description,
+      price: parseFloat(dishForm.price),
+      category: dishForm.category,
+      available: dishForm.available,
+      preparationTime: parseInt(dishForm.preparationTime) || 10,
+      allergens: dishForm.allergens.split(',').map(a => a.trim()).filter(a => a),
+      isPopular: dishForm.isPopular
     };
 
-    setCategories(categories.map(cat => 
-      cat.id === editingItem.categoryId 
-        ? { 
-            ...cat, 
-            items: cat.items.map(item => 
-              item.id === editingItem.id ? updatedItem : item
-            )
-          }
-        : cat
-    ));
-
-    setEditingItem(null);
-    setIsItemDialogOpen(false);
-    toast.success('Plat mis à jour avec succès');
+    setDishes([...dishes, newDish]);
+    toast.success(`Plat "${newDish.name}" ajouté avec succès !`);
+    resetDishForm();
+    setIsAddDishOpen(false);
   };
 
-  const handleImageUpload = (file: File) => {
-    const imageUrl = URL.createObjectURL(file);
-    if (editingItem) {
-      setEditingItem({ ...editingItem, image: imageUrl });
-    } else {
-      setNewItem({ ...newItem, image: imageUrl });
+  const handleEditDish = (dish: Dish) => {
+    setEditingDish(dish);
+    setDishForm({
+      name: dish.name,
+      description: dish.description,
+      price: dish.price.toString(),
+      category: dish.category,
+      preparationTime: dish.preparationTime.toString(),
+      allergens: dish.allergens.join(', '),
+      available: dish.available,
+      isPopular: dish.isPopular
+    });
+    setIsEditDishOpen(true);
+  };
+
+  const handleUpdateDish = () => {
+    if (!editingDish || !dishForm.name || !dishForm.price || !dishForm.category) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+
+    const updatedDish: Dish = {
+      ...editingDish,
+      name: dishForm.name,
+      description: dishForm.description,
+      price: parseFloat(dishForm.price),
+      category: dishForm.category,
+      available: dishForm.available,
+      preparationTime: parseInt(dishForm.preparationTime) || 10,
+      allergens: dishForm.allergens.split(',').map(a => a.trim()).filter(a => a),
+      isPopular: dishForm.isPopular
+    };
+
+    setDishes(dishes.map(d => d.id === editingDish.id ? updatedDish : d));
+    toast.success(`Plat "${updatedDish.name}" modifié avec succès !`);
+    resetDishForm();
+    setIsEditDishOpen(false);
+    setEditingDish(null);
+  };
+
+  const handleDeleteDish = (dishId: number) => {
+    const dish = dishes.find(d => d.id === dishId);
+    if (confirm(`Êtes-vous sûr de vouloir supprimer le plat "${dish?.name}" ?`)) {
+      setDishes(dishes.filter(d => d.id !== dishId));
+      toast.success('Plat supprimé avec succès');
     }
   };
 
-  const resetItemForm = () => {
-    setEditingItem(null);
-    setNewItem({ 
-      name: '', 
-      description: '', 
-      price: '', 
-      categoryId: null,
-      image: null,
-      allergens: '',
-      isVegetarian: false,
-      isPopular: false
+  const handleAddCategory = () => {
+    if (!categoryForm.name) {
+      toast.error('Veuillez saisir un nom de catégorie');
+      return;
+    }
+
+    const newCategory: Category = {
+      id: Date.now(),
+      name: categoryForm.name,
+      description: categoryForm.description,
+      order: parseInt(categoryForm.order) || categories.length + 1,
+      isActive: categoryForm.isActive
+    };
+
+    setCategories([...categories, newCategory]);
+    toast.success(`Catégorie "${newCategory.name}" ajoutée avec succès !`);
+    resetCategoryForm();
+    setIsAddCategoryOpen(false);
+  };
+
+  const handleEditCategory = (category: Category) => {
+    setEditingCategory(category);
+    setCategoryForm({
+      name: category.name,
+      description: category.description,
+      order: category.order.toString(),
+      isActive: category.isActive
     });
+    setIsEditCategoryOpen(true);
+  };
+
+  const handleUpdateCategory = () => {
+    if (!editingCategory || !categoryForm.name) {
+      toast.error('Veuillez saisir un nom de catégorie');
+      return;
+    }
+
+    const updatedCategory: Category = {
+      ...editingCategory,
+      name: categoryForm.name,
+      description: categoryForm.description,
+      order: parseInt(categoryForm.order) || 1,
+      isActive: categoryForm.isActive
+    };
+
+    setCategories(categories.map(c => c.id === editingCategory.id ? updatedCategory : c));
+    toast.success(`Catégorie "${updatedCategory.name}" modifiée avec succès !`);
+    resetCategoryForm();
+    setIsEditCategoryOpen(false);
+    setEditingCategory(null);
   };
 
   const handleDeleteCategory = (categoryId: number) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) return;
+    const category = categories.find(c => c.id === categoryId);
+    const dishesInCategory = dishes.filter(d => d.category === category?.name);
     
-    setCategories(categories.filter(cat => cat.id !== categoryId));
-    toast.success('Catégorie supprimée');
+    if (dishesInCategory.length > 0) {
+      toast.error(`Impossible de supprimer la catégorie "${category?.name}" car elle contient ${dishesInCategory.length} plat(s)`);
+      return;
+    }
+
+    if (confirm(`Êtes-vous sûr de vouloir supprimer la catégorie "${category?.name}" ?`)) {
+      setCategories(categories.filter(c => c.id !== categoryId));
+      toast.success('Catégorie supprimée avec succès');
+    }
   };
 
-  const handleDeleteItem = (categoryId: number, itemId: number) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce plat ?')) return;
-    
-    setCategories(categories.map(cat => 
-      cat.id === categoryId 
-        ? { ...cat, items: cat.items.filter(item => item.id !== itemId) }
-        : cat
+  const toggleDishAvailability = (dishId: number) => {
+    setDishes(dishes.map(d => 
+      d.id === dishId ? { ...d, available: !d.available } : d
     ));
-    toast.success('Plat supprimé');
+    const dish = dishes.find(d => d.id === dishId);
+    toast.success(`Plat "${dish?.name}" ${dish?.available ? 'désactivé' : 'activé'}`);
   };
-
-  const handleDuplicateItem = (item: any, categoryId: number) => {
-    const duplicatedItem = {
-      ...item,
-      id: Date.now(),
-      name: `${item.name} (Copie)`
-    };
-
-    setCategories(categories.map(cat => 
-      cat.id === categoryId 
-        ? { ...cat, items: [...cat.items, duplicatedItem] }
-        : cat
-    ));
-    toast.success('Plat dupliqué');
-  };
-
-  const moveItem = (categoryId: number, itemId: number, direction: 'up' | 'down') => {
-    setCategories(categories.map(cat => {
-      if (cat.id === categoryId) {
-        const items = [...cat.items];
-        const index = items.findIndex(item => item.id === itemId);
-        
-        if ((direction === 'up' && index > 0) || (direction === 'down' && index < items.length - 1)) {
-          const newIndex = direction === 'up' ? index - 1 : index + 1;
-          [items[index], items[newIndex]] = [items[newIndex], items[index]];
-        }
-        
-        return { ...cat, items };
-      }
-      return cat;
-    }));
-    toast.success('Ordre modifié');
-  };
-
-  const previewMenu = () => {
-    window.open('/menu/preview', '_blank');
-  };
-
-  const currentItem = editingItem || newItem;
-  const isEditing = !!editingItem;
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Gestion des menus</h2>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={previewMenu}>
-            <Eye className="h-4 w-4 mr-2" />
-            Aperçu
-          </Button>
-          <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="border-scanner-green-600 text-scanner-green-600">
-                <Plus className="h-4 w-4 mr-2" />
-                Nouvelle catégorie
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Nouvelle catégorie</DialogTitle>
-                <DialogDescription>Ajoutez une nouvelle catégorie à votre menu</DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleAddCategory} className="space-y-4">
-                <div>
-                  <Label htmlFor="categoryName">Nom de la catégorie</Label>
-                  <Input
-                    id="categoryName"
-                    value={newCategory.name}
-                    onChange={(e) => setNewCategory({ name: e.target.value })}
-                    placeholder="Entrées, Plats, Desserts..."
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full bg-scanner-green-600 hover:bg-scanner-green-700">
-                  Créer la catégorie
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={isItemDialogOpen} onOpenChange={(open) => {
-            setIsItemDialogOpen(open);
-            if (!open) resetItemForm();
-          }}>
-            <DialogTrigger asChild>
-              <Button className="bg-scanner-green-600 hover:bg-scanner-green-700">
-                <Plus className="h-4 w-4 mr-2" />
-                Nouveau plat
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>{isEditing ? 'Modifier le plat' : 'Nouveau plat'}</DialogTitle>
-                <DialogDescription>
-                  {isEditing ? 'Modifiez les informations de ce plat' : 'Ajoutez un nouveau plat à votre menu'}
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={isEditing ? handleUpdateItem : handleAddItem} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="itemCategory">Catégorie</Label>
-                      <select
-                        id="itemCategory"
-                        value={currentItem.categoryId || ''}
-                        onChange={(e) => {
-                          const categoryId = parseInt(e.target.value);
-                          if (isEditing) {
-                            setEditingItem({ ...editingItem, categoryId });
-                          } else {
-                            setNewItem({ ...newItem, categoryId });
-                          }
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-scanner-green-500"
-                        required
-                      >
-                        <option value="">Sélectionner une catégorie</option>
-                        {categories.map(cat => (
-                          <option key={cat.id} value={cat.id}>{cat.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <Label htmlFor="itemName">Nom du plat</Label>
-                      <Input
-                        id="itemName"
-                        value={currentItem.name}
-                        onChange={(e) => {
-                          if (isEditing) {
-                            setEditingItem({ ...editingItem, name: e.target.value });
-                          } else {
-                            setNewItem({ ...newItem, name: e.target.value });
-                          }
-                        }}
-                        placeholder="Nom du plat"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="itemDescription">Description</Label>
-                      <Textarea
-                        id="itemDescription"
-                        value={currentItem.description}
-                        onChange={(e) => {
-                          if (isEditing) {
-                            setEditingItem({ ...editingItem, description: e.target.value });
-                          } else {
-                            setNewItem({ ...newItem, description: e.target.value });
-                          }
-                        }}
-                        placeholder="Description du plat..."
-                        rows={3}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="itemPrice">Prix (€)</Label>
-                      <Input
-                        id="itemPrice"
-                        type="number"
-                        step="0.01"
-                        value={currentItem.price}
-                        onChange={(e) => {
-                          if (isEditing) {
-                            setEditingItem({ ...editingItem, price: e.target.value });
-                          } else {
-                            setNewItem({ ...newItem, price: e.target.value });
-                          }
-                        }}
-                        placeholder="12.50"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="allergens">Allergènes (séparés par des virgules)</Label>
-                      <Input
-                        id="allergens"
-                        value={currentItem.allergens}
-                        onChange={(e) => {
-                          if (isEditing) {
-                            setEditingItem({ ...editingItem, allergens: e.target.value });
-                          } else {
-                            setNewItem({ ...newItem, allergens: e.target.value });
-                          }
-                        }}
-                        placeholder="Gluten, Lait, Œufs..."
-                      />
-                    </div>
-                    <div className="flex gap-4">
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={currentItem.isVegetarian}
-                          onChange={(e) => {
-                            if (isEditing) {
-                              setEditingItem({ ...editingItem, isVegetarian: e.target.checked });
-                            } else {
-                              setNewItem({ ...newItem, isVegetarian: e.target.checked });
-                            }
-                          }}
-                          className="rounded"
-                        />
-                        <span className="text-sm">Végétarien</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={currentItem.isPopular}
-                          onChange={(e) => {
-                            if (isEditing) {
-                              setEditingItem({ ...editingItem, isPopular: e.target.checked });
-                            } else {
-                              setNewItem({ ...newItem, isPopular: e.target.checked });
-                            }
-                          }}
-                          className="rounded"
-                        />
-                        <span className="text-sm">Populaire</span>
-                      </label>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label>Image du plat</Label>
-                    <ImageUpload
-                      onImageUpload={handleImageUpload}
-                      currentImage={currentItem.image}
-                      className="mt-2"
-                    />
-                  </div>
-                </div>
-
-                <Button type="submit" className="w-full bg-scanner-green-600 hover:bg-scanner-green-700">
-                  {isEditing ? 'Mettre à jour le plat' : 'Ajouter le plat'}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+        <div>
+          <h2 className="text-2xl font-bold">Gestion du Menu</h2>
+          <p className="text-gray-600">Gérez vos plats et catégories de menu</p>
         </div>
       </div>
 
-      {/* Edit Category Dialog */}
-      <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Modifier la catégorie</DialogTitle>
-            <DialogDescription>Modifiez le nom de cette catégorie</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleUpdateCategory} className="space-y-4">
-            <div>
-              <Label htmlFor="editCategoryName">Nom de la catégorie</Label>
-              <Input
-                id="editCategoryName"
-                value={editingCategory?.name || ''}
-                onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
-                placeholder="Entrées, Plats, Desserts..."
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full bg-scanner-green-600 hover:bg-scanner-green-700">
-              Modifier la catégorie
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Plats</CardTitle>
+            <ChefHat className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{dishes.length}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Plats Disponibles</CardTitle>
+            <Menu className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{dishes.filter(d => d.available).length}</div>
+          </CardContent>
+        </Card>
 
-      <div className="space-y-6">
-        {categories.map((category) => (
-          <Card key={category.id}>
-            <CardHeader className="bg-scanner-green-50 border-b">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-xl text-scanner-green-800">{category.name}</CardTitle>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Prix Moyen</CardTitle>
+            <Euro className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {dishes.length > 0 ? (dishes.reduce((acc, d) => acc + d.price, 0) / dishes.length).toFixed(2) : '0.00'}€
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Catégories</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{categories.filter(c => c.isActive).length}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex gap-4">
+        <Dialog open={isAddDishOpen} onOpenChange={setIsAddDishOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-scanner-green-600 hover:bg-scanner-green-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Ajouter un plat
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Ajouter un nouveau plat</DialogTitle>
+              <DialogDescription>
+                Ajoutez un nouveau plat à votre menu
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="dish-name">Nom du plat *</Label>
+                  <Input
+                    id="dish-name"
+                    value={dishForm.name}
+                    onChange={(e) => setDishForm({...dishForm, name: e.target.value})}
+                    placeholder="Ex: Pizza Margherita"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="dish-price">Prix (€) *</Label>
+                  <Input
+                    id="dish-price"
+                    type="number"
+                    step="0.01"
+                    value={dishForm.price}
+                    onChange={(e) => setDishForm({...dishForm, price: e.target.value})}
+                    placeholder="12.50"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="dish-description">Description</Label>
+                <Textarea
+                  id="dish-description"
+                  value={dishForm.description}
+                  onChange={(e) => setDishForm({...dishForm, description: e.target.value})}
+                  placeholder="Description du plat..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="dish-category">Catégorie *</Label>
+                  <Select value={dishForm.category} onValueChange={(value) => setDishForm({...dishForm, category: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner une catégorie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.filter(c => c.isActive).map((category) => (
+                        <SelectItem key={category.id} value={category.name}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="dish-prep-time">Temps de préparation (min)</Label>
+                  <Input
+                    id="dish-prep-time"
+                    type="number"
+                    value={dishForm.preparationTime}
+                    onChange={(e) => setDishForm({...dishForm, preparationTime: e.target.value})}
+                    placeholder="15"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="dish-allergens">Allergènes (séparés par des virgules)</Label>
+                <Input
+                  id="dish-allergens"
+                  value={dishForm.allergens}
+                  onChange={(e) => setDishForm({...dishForm, allergens: e.target.value})}
+                  placeholder="Gluten, Lactose, Œuf"
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <Button onClick={handleAddDish} className="bg-scanner-green-600 hover:bg-scanner-green-700">
+                  Ajouter le plat
+                </Button>
+                <Button variant="outline" onClick={() => setIsAddDishOpen(false)}>
+                  Annuler
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isAddCategoryOpen} onOpenChange={setIsAddCategoryOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline">
+              <Plus className="h-4 w-4 mr-2" />
+              Ajouter une catégorie
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Ajouter une nouvelle catégorie</DialogTitle>
+              <DialogDescription>
+                Ajoutez une nouvelle catégorie à votre menu
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="category-name">Nom de la catégorie *</Label>
+                <Input
+                  id="category-name"
+                  value={categoryForm.name}
+                  onChange={(e) => setCategoryForm({...categoryForm, name: e.target.value})}
+                  placeholder="Ex: Entrées"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="category-description">Description</Label>
+                <Textarea
+                  id="category-description"
+                  value={categoryForm.description}
+                  onChange={(e) => setCategoryForm({...categoryForm, description: e.target.value})}
+                  placeholder="Description de la catégorie..."
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="category-order">Ordre d'affichage</Label>
+                <Input
+                  id="category-order"
+                  type="number"
+                  value={categoryForm.order}
+                  onChange={(e) => setCategoryForm({...categoryForm, order: e.target.value})}
+                  placeholder="1"
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <Button onClick={handleAddCategory} className="bg-scanner-green-600 hover:bg-scanner-green-700">
+                  Ajouter la catégorie
+                </Button>
+                <Button variant="outline" onClick={() => setIsAddCategoryOpen(false)}>
+                  Annuler
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Categories */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Catégories de menu</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {categories.sort((a, b) => a.order - b.order).map((category) => (
+              <div key={category.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3">
+                    <h4 className="font-medium">{category.name}</h4>
+                    <Badge variant={category.isActive ? "default" : "secondary"}>
+                      {category.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">{category.description}</p>
+                  <span className="text-xs text-gray-500">
+                    {dishes.filter(d => d.category === category.name).length} plat(s)
+                  </span>
+                </div>
                 <div className="flex gap-2">
                   <Button variant="ghost" size="sm" onClick={() => handleEditCategory(category)}>
                     <Edit className="h-4 w-4" />
@@ -506,131 +499,228 @@ const MenuManager = () => {
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="text-red-600 hover:text-red-700"
                     onClick={() => handleDeleteCategory(category.id)}
+                    className="text-red-600 hover:text-red-700"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              {category.items.length === 0 ? (
-                <div className="p-6 text-center text-gray-500">
-                  Aucun plat dans cette catégorie
-                </div>
-              ) : (
-                <div className="divide-y">
-                  {category.items.map((item, index) => (
-                    <div key={item.id} className="p-4 hover:bg-gray-50 transition-colors">
-                      <div className="flex gap-4">
-                        <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                          {item.image ? (
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <ImageIcon className="h-8 w-8 text-gray-400" />
-                            </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Dishes */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Plats du menu</h3>
+        {categories.filter(c => c.isActive).sort((a, b) => a.order - b.order).map((category) => {
+          const categoryDishes = dishes.filter(d => d.category === category.name);
+          if (categoryDishes.length === 0) return null;
+
+          return (
+            <Card key={category.id}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {category.name}
+                  <Badge variant="outline">{categoryDishes.length} plat(s)</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4">
+                  {categoryDishes.map((dish) => (
+                    <div key={dish.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h4 className="font-medium">{dish.name}</h4>
+                          <Badge variant={dish.available ? "default" : "secondary"}>
+                            {dish.available ? "Disponible" : "Indisponible"}
+                          </Badge>
+                          {dish.isPopular && (
+                            <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                              Populaire
+                            </Badge>
                           )}
                         </div>
-                        
-                        <div className="flex-1">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="font-semibold text-gray-900 flex items-center gap-2">
-                                {item.name}
-                                {item.isPopular && (
-                                  <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
-                                    ⭐ Populaire
-                                  </Badge>
-                                )}
-                                {item.isVegetarian && (
-                                  <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
-                                    🌱 Végétarien
-                                  </Badge>
-                                )}
-                              </h4>
-                              <p className="text-gray-600 text-sm mt-1">{item.description}</p>
-                              {item.allergens && item.allergens.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                  {item.allergens.map(allergen => (
-                                    <Badge key={allergen} variant="outline" className="text-xs text-orange-600 border-orange-200">
-                                      ⚠️ {allergen}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-3 ml-4">
-                              <Badge variant="secondary" className="text-lg font-bold">
-                                {item.price}€
-                              </Badge>
-                              <div className="flex gap-1">
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => moveItem(category.id, item.id, 'up')}
-                                  disabled={index === 0}
-                                >
-                                  <ArrowUp className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => moveItem(category.id, item.id, 'down')}
-                                  disabled={index === category.items.length - 1}
-                                >
-                                  <ArrowDown className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => handleDuplicateItem(item, category.id)}
-                                >
-                                  <Copy className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => handleEditItem(item, category.id)}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="text-red-600 hover:text-red-700"
-                                  onClick={() => handleDeleteItem(category.id, item.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
+                        <p className="text-sm text-gray-600 mb-2">{dish.description}</p>
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <span className="font-semibold text-scanner-green-600">{dish.price.toFixed(2)}€</span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {dish.preparationTime}min
+                          </span>
+                          {dish.allergens.length > 0 && (
+                            <span>Allergènes: {dish.allergens.join(', ')}</span>
+                          )}
                         </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => toggleDishAvailability(dish.id)}
+                          className={dish.available ? "text-orange-600 hover:text-orange-700" : "text-green-600 hover:text-green-700"}
+                        >
+                          {dish.available ? "Désactiver" : "Activer"}
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleEditDish(dish)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleDeleteDish(dish.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   ))}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
-      {categories.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500 mb-4">Aucune catégorie créée</p>
-          <Button onClick={() => setIsCategoryDialogOpen(true)} className="bg-scanner-green-600 hover:bg-scanner-green-700">
-            <Plus className="h-4 w-4 mr-2" />
-            Créer votre première catégorie
-          </Button>
-        </div>
-      )}
+      {/* Edit Dish Dialog */}
+      <Dialog open={isEditDishOpen} onOpenChange={setIsEditDishOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Modifier le plat</DialogTitle>
+            <DialogDescription>
+              Modifiez les informations du plat
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-dish-name">Nom du plat *</Label>
+                <Input
+                  id="edit-dish-name"
+                  value={dishForm.name}
+                  onChange={(e) => setDishForm({...dishForm, name: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-dish-price">Prix (€) *</Label>
+                <Input
+                  id="edit-dish-price"
+                  type="number"
+                  step="0.01"
+                  value={dishForm.price}
+                  onChange={(e) => setDishForm({...dishForm, price: e.target.value})}
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="edit-dish-description">Description</Label>
+              <Textarea
+                id="edit-dish-description"
+                value={dishForm.description}
+                onChange={(e) => setDishForm({...dishForm, description: e.target.value})}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-dish-category">Catégorie *</Label>
+                <Select value={dishForm.category} onValueChange={(value) => setDishForm({...dishForm, category: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.filter(c => c.isActive).map((category) => (
+                      <SelectItem key={category.id} value={category.name}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="edit-dish-prep-time">Temps de préparation (min)</Label>
+                <Input
+                  id="edit-dish-prep-time"
+                  type="number"
+                  value={dishForm.preparationTime}
+                  onChange={(e) => setDishForm({...dishForm, preparationTime: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="edit-dish-allergens">Allergènes (séparés par des virgules)</Label>
+              <Input
+                id="edit-dish-allergens"
+                value={dishForm.allergens}
+                onChange={(e) => setDishForm({...dishForm, allergens: e.target.value})}
+              />
+            </div>
+
+            <div className="flex gap-4">
+              <Button onClick={handleUpdateDish} className="bg-scanner-green-600 hover:bg-scanner-green-700">
+                Sauvegarder
+              </Button>
+              <Button variant="outline" onClick={() => setIsEditDishOpen(false)}>
+                Annuler
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Category Dialog */}
+      <Dialog open={isEditCategoryOpen} onOpenChange={setIsEditCategoryOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier la catégorie</DialogTitle>
+            <DialogDescription>
+              Modifiez les informations de la catégorie
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-category-name">Nom de la catégorie *</Label>
+              <Input
+                id="edit-category-name"
+                value={categoryForm.name}
+                onChange={(e) => setCategoryForm({...categoryForm, name: e.target.value})}
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="edit-category-description">Description</Label>
+              <Textarea
+                id="edit-category-description"
+                value={categoryForm.description}
+                onChange={(e) => setCategoryForm({...categoryForm, description: e.target.value})}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="edit-category-order">Ordre d'affichage</Label>
+              <Input
+                id="edit-category-order"
+                type="number"
+                value={categoryForm.order}
+                onChange={(e) => setCategoryForm({...categoryForm, order: e.target.value})}
+              />
+            </div>
+
+            <div className="flex gap-4">
+              <Button onClick={handleUpdateCategory} className="bg-scanner-green-600 hover:bg-scanner-green-700">
+                Sauvegarder
+              </Button>
+              <Button variant="outline" onClick={() => setIsEditCategoryOpen(false)}>
+                Annuler
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
