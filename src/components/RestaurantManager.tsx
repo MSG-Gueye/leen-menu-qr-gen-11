@@ -12,7 +12,7 @@ import EmptyRestaurantState from './EmptyRestaurantState';
 
 const RestaurantManager = () => {
   const navigate = useNavigate();
-  const { businesses, addBusiness, updateBusiness, deleteBusiness, toggleBusinessStatus, generateQRCode, getBusinessStats } = useBusinesses();
+  const { businesses, addBusiness, updateBusiness, deleteBusiness, toggleBusinessStatus, generateQRCode, generatePaymentQRCode, getBusinessStats } = useBusinesses();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -46,6 +46,10 @@ const RestaurantManager = () => {
 
   const handleGenerateQR = (id: number) => {
     generateQRCode(id);
+  };
+
+  const handleGeneratePaymentQR = (id: number) => {
+    generatePaymentQRCode(id);
   };
 
   const handleToggleStatus = (id: number) => {
@@ -120,6 +124,7 @@ const RestaurantManager = () => {
             business={business}
             onEdit={handleEditBusiness}
             onGenerateQR={handleGenerateQR}
+            onGeneratePaymentQR={handleGeneratePaymentQR}
             onToggleStatus={handleToggleStatus}
             onSuspendForNonPayment={handleSuspendForNonPayment}
             onReactivateAfterPayment={handleReactivateAfterPayment}

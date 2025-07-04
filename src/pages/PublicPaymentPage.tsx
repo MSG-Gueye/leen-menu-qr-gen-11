@@ -1,10 +1,9 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Loader2, CheckCircle, XCircle, CreditCard, QrCode, ArrowLeft } from 'lucide-react';
@@ -13,13 +12,14 @@ import { useBusinesses, subscriptionPackages } from '@/hooks/useBusinesses';
 
 const PublicPaymentPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { businesses, updateBusiness } = useBusinesses();
-  const [selectedBusiness, setSelectedBusiness] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'success' | 'failed' | null>(null);
 
-  const business = businesses.find(b => b.id === Number(selectedBusiness));
+  const businessId = searchParams.get('business');
+  const business = businessId ? businesses.find(b => b.id === Number(businessId)) : null;
   const packageInfo = business?.subscriptionPackage ? subscriptionPackages[business.subscriptionPackage] : null;
 
   const paymentMethods = [
@@ -28,6 +28,13 @@ const PublicPaymentPage = () => {
     { id: 'paydunya', name: 'Paydunya', icon: '💳' }
   ];
 
+  useEffect(() => {
+    if (businessId && !business) {
+      toast.error("Entreprise non trouvée");
+      navigate('/');
+    }
+  }, [businessId, business, navigate]);
+
   const handlePayment = async () => {
     if (!business || !paymentMethod || !packageInfo) return;
 
@@ -35,12 +42,10 @@ const PublicPaymentPage = () => {
     setPaymentStatus('pending');
 
     try {
-      // Simulation du paiement selon la méthode choisie
       console.log(`Paiement de ${packageInfo.price} FCFA via ${paymentMethod} pour ${business.name}`);
       
-      // Simulation d'une réponse de paiement
       setTimeout(() => {
-        const isSuccess = Math.random() > 0.2; // 80% de chance de succès
+        const isSuccess = Math.random() > 0.2;
         
         if (isSuccess) {
           setPaymentStatus('success');
@@ -65,7 +70,24 @@ const PublicPaymentPage = () => {
     }
   };
 
-  const canProceed = selectedBusiness && paymentMethod && business && packageInfo;
+  if (!business) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-scanner-light via-white to-gray-50 flex items-center justify-center">
+        <Card className="max-w-md mx-auto">
+          <CardContent className="text-center p-8">
+            <XCircle className="h-12 w-12 mx-auto mb-4 text-red-600" />
+            <h2 className="text-xl font-semibold mb-2">Entreprise non trouvée</h2>
+            <p className="text-gray-600 mb-4">Veuillez scanner un QR code valide.</p>
+            <Button onClick={() => navigate('/')}>
+              Retour à l'accueil
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const canProceed = paymentMethod && business && packageInfo;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-scanner-light via-white to-gray-50">
@@ -93,7 +115,7 @@ const PublicPaymentPage = () => {
               Paiement d'abonnement
             </h2>
             <p className="text-scanner-gray">
-              Effectuez le paiement de votre abonnement mensuel Scanner-Leen
+              Paiement pour <span className="font-semibold text-scanner-red">{business.name}</span>
             </p>
           </div>
 
@@ -105,26 +127,19 @@ const PublicPaymentPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Sélection du restaurant */}
-              <div className="space-y-2">
-                <Label htmlFor="restaurant">Nom du restaurant</Label>
-                <Select value={selectedBusiness} onValueChange={setSelectedBusiness}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionnez votre restaurant" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {businesses.map((business) => (
-                      <SelectItem key={business.id} value={business.id.toString()}>
-                        {business.name} - {business.businessType}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              {/* Informations de l'entreprise */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-semibold mb-2">Informations de l'entreprise</h3>
+                <div className="space-y-2 text-sm">
+                  <p><span className="font-medium">Nom:</span> {business.name}</p>
+                  <p><span className="font-medium">Type:</span> {business.businessType}</p>
+                  <p><span className="font-medium">Propriétaire:</span> {business.owner}</p>
+                </div>
               </div>
 
-              {/* Informations du package si restaurant sélectionné */}
-              {business && packageInfo && (
-                <div className="bg-blue-50 p-4 rounded-lg">
+              {/* Informations du package */}
+              {packageInfo && (
+                <div className="bg-green-50 p-4 rounded-lg">
                   <h3 className="font-semibold mb-2">Package sélectionné</h3>
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-medium">{packageInfo.name}</span>

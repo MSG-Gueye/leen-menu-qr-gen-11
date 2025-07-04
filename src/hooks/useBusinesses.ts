@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -14,10 +15,11 @@ export interface Business {
   owner: string;
   description?: string;
   qrCodeUrl?: string;
+  paymentQrCodeUrl?: string;
   totalScans?: number;
   paymentStatus?: 'paid' | 'pending';
   lastPayment?: string;
-  subscriptionPackage?: 'basic' | 'premium' | 'enterprise';
+  subscriptionPackage: 'basic' | 'premium' | 'enterprise';
 }
 
 export const subscriptionPackages = {
@@ -146,6 +148,14 @@ export const useBusinesses = () => {
     return qrCodeUrl;
   };
 
+  const generatePaymentQRCode = (id: number) => {
+    const paymentUrl = `${window.location.origin}/paiement-public?business=${id}`;
+    const paymentQrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(paymentUrl)}`;
+    updateBusiness(id, { paymentQrCodeUrl });
+    toast.success("QR Code de paiement généré avec succès !");
+    return paymentQrCodeUrl;
+  };
+
   const getBusinessStats = () => {
     return {
       total: businesses.length,
@@ -162,6 +172,7 @@ export const useBusinesses = () => {
     deleteBusiness,
     toggleBusinessStatus,
     generateQRCode,
+    generatePaymentQRCode,
     getBusinessStats
   };
 };

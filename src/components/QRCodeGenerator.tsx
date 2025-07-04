@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { QrCode, Download, Copy, Eye } from 'lucide-react';
+import { QrCode, Download, Copy, Eye, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
+import { useBusinesses } from '@/hooks/useBusinesses';
 
 interface QRCodeGeneratorProps {
   restaurantId: number;
@@ -13,6 +14,7 @@ interface QRCodeGeneratorProps {
 }
 
 const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ restaurantId, restaurantName }) => {
+  const { generatePaymentQRCode } = useBusinesses();
   const [qrSettings, setQrSettings] = useState({
     size: '256',
     format: 'png',
@@ -21,25 +23,32 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ restaurantId, restaur
   });
 
   const menuUrl = `${window.location.origin}/menu/${restaurantId}`;
+  const paymentUrl = `${window.location.origin}/paiement-public?business=${restaurantId}`;
+  
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSettings.size}x${qrSettings.size}&data=${encodeURIComponent(menuUrl)}&bgcolor=${qrSettings.backgroundColor.replace('#', '')}&color=${qrSettings.foregroundColor.replace('#', '')}`;
+  const paymentQrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSettings.size}x${qrSettings.size}&data=${encodeURIComponent(paymentUrl)}&bgcolor=${qrSettings.backgroundColor.replace('#', '')}&color=${qrSettings.foregroundColor.replace('#', '')}`;
 
-  const handleDownload = () => {
+  const handleDownload = (url: string, type: 'menu' | 'payment') => {
     const link = document.createElement('a');
-    link.href = qrCodeUrl;
-    link.download = `qr-code-${restaurantName.toLowerCase().replace(/\s+/g, '-')}.${qrSettings.format}`;
+    link.href = url;
+    link.download = `qr-code-${type}-${restaurantName.toLowerCase().replace(/\s+/g, '-')}.${qrSettings.format}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success('QR Code téléchargé avec succès !');
+    toast.success(`QR Code ${type === 'menu' ? 'menu' : 'paiement'} téléchargé avec succès !`);
   };
 
-  const handleCopyUrl = () => {
-    navigator.clipboard.writeText(menuUrl);
-    toast.success('URL copiée dans le presse-papiers');
+  const handleCopyUrl = (url: string, type: 'menu' | 'payment') => {
+    navigator.clipboard.writeText(url);
+    toast.success(`URL ${type === 'menu' ? 'du menu' : 'de paiement'} copiée dans le presse-papiers`);
   };
 
-  const handlePreview = () => {
-    window.open(menuUrl, '_blank');
+  const handlePreview = (url: string) => {
+    window.open(url, '_blank');
+  };
+
+  const handleGeneratePaymentQR = () => {
+    generatePaymentQRCode(restaurantId);
   };
 
   return (
@@ -47,7 +56,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ restaurantId, restaur
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Paramètres du QR Code</CardTitle>
+            <CardTitle>Paramètres des QR Codes</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -83,50 +92,85 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ restaurantId, restaur
                 onChange={(e) => setQrSettings({ ...qrSettings, foregroundColor: e.target.value })}
               />
             </div>
+          </CardContent>
+        </Card>
 
-            <div>
-              <Label htmlFor="menu-url">URL du menu</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="menu-url"
-                  value={menuUrl}
-                  readOnly
-                  className="bg-gray-50"
+        <div className="space-y-6">
+          {/* QR Code Menu */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <QrCode className="h-5 w-5" />
+                QR Code Menu
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <div className="bg-white p-4 rounded-lg border inline-block">
+                <img
+                  src={qrCodeUrl}
+                  alt="QR Code Menu"
+                  className="mx-auto"
+                  style={{ maxWidth: '150px', maxHeight: '150px' }}
                 />
-                <Button variant="outline" size="icon" onClick={handleCopyUrl}>
-                  <Copy className="h-4 w-4" />
+              </div>
+              
+              <div className="flex gap-2 justify-center">
+                <Button onClick={() => handlePreview(menuUrl)} variant="outline" size="sm">
+                  <Eye className="h-4 w-4 mr-1" />
+                  Tester
+                </Button>
+                <Button onClick={() => handleCopyUrl(menuUrl, 'menu')} variant="outline" size="sm">
+                  <Copy className="h-4 w-4 mr-1" />
+                  Copier
+                </Button>
+                <Button onClick={() => handleDownload(qrCodeUrl, 'menu')} size="sm" className="bg-scanner-green-600 hover:bg-scanner-green-700">
+                  <Download className="h-4 w-4 mr-1" />
+                  Télécharger
                 </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Aperçu</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <div className="bg-white p-4 rounded-lg border inline-block">
-              <img
-                src={qrCodeUrl}
-                alt="QR Code"
-                className="mx-auto"
-                style={{ maxWidth: '200px', maxHeight: '200px' }}
-              />
-            </div>
-            
-            <div className="flex gap-2 justify-center">
-              <Button onClick={handlePreview} variant="outline">
-                <Eye className="h-4 w-4 mr-2" />
-                Tester
+          {/* QR Code Paiement */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                QR Code Paiement
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <div className="bg-white p-4 rounded-lg border inline-block">
+                <img
+                  src={paymentQrCodeUrl}
+                  alt="QR Code Paiement"
+                  className="mx-auto"
+                  style={{ maxWidth: '150px', maxHeight: '150px' }}
+                />
+              </div>
+              
+              <div className="flex gap-2 justify-center">
+                <Button onClick={() => handlePreview(paymentUrl)} variant="outline" size="sm">
+                  <Eye className="h-4 w-4 mr-1" />
+                  Tester
+                </Button>
+                <Button onClick={() => handleCopyUrl(paymentUrl, 'payment')} variant="outline" size="sm">
+                  <Copy className="h-4 w-4 mr-1" />
+                  Copier
+                </Button>
+                <Button onClick={() => handleDownload(paymentQrCodeUrl, 'payment')} size="sm" className="bg-scanner-red hover:bg-scanner-red/90">
+                  <Download className="h-4 w-4 mr-1" />
+                  Télécharger
+                </Button>
+              </div>
+              
+              <Button onClick={handleGeneratePaymentQR} variant="outline" className="w-full">
+                <CreditCard className="h-4 w-4 mr-2" />
+                Générer QR Code de paiement
               </Button>
-              <Button onClick={handleDownload} className="bg-scanner-green-600 hover:bg-scanner-green-700">
-                <Download className="h-4 w-4 mr-2" />
-                Télécharger
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
