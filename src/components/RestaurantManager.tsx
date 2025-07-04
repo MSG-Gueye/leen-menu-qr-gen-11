@@ -81,7 +81,7 @@ const RestaurantManager = () => {
   };
 
   const handlePaymentClick = (businessId: number) => {
-    navigate(`/payment/${businessId}`);
+    navigate(`/paiement/${businessId}`);
   };
 
   return (

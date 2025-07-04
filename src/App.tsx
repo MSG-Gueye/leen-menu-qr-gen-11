@@ -18,6 +18,8 @@ const App = () => (
             <Route key={to} path={to} element={page} />
           ))}
           <Route path="/payment/:businessId" element={<PaymentPage />} />
+          <Route path="/paiement/:businessId" element={<PaymentPage />} />
+          <Route path="/paiement" element={<PaymentPage />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
