@@ -2,17 +2,33 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useBusinesses, Business } from '@/hooks/useBusinesses';
 import BusinessForm from './BusinessForm';
 import RestaurantStats from './RestaurantStats';
 import RestaurantCard from './RestaurantCard';
 import EmptyRestaurantState from './EmptyRestaurantState';
+import TrashManager from './TrashManager';
 
 const RestaurantManager = () => {
   const navigate = useNavigate();
-  const { businesses, addBusiness, updateBusiness, deleteBusiness, toggleBusinessStatus, generateQRCode, generatePaymentQRCode, getBusinessStats } = useBusinesses();
+  const { 
+    businesses, 
+    deletedBusinesses,
+    addBusiness, 
+    updateBusiness, 
+    deleteBusiness, 
+    restoreFromTrash,
+    permanentlyDeleteBusiness,
+    emptyTrash,
+    toggleBusinessStatus, 
+    generateQRCode, 
+    generatePaymentQRCode, 
+    getBusinessStats 
+  } = useBusinesses();
+  
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -39,7 +55,8 @@ const RestaurantManager = () => {
   };
 
   const handleDeleteBusiness = (id: number) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette entreprise ?')) {
+    const business = businesses.find(b => b.id === id);
+    if (confirm(`Êtes-vous sûr de vouloir déplacer ${business?.name} vers la corbeille ?`)) {
       deleteBusiness(id);
     }
   };
@@ -115,30 +132,53 @@ const RestaurantManager = () => {
         </Dialog>
       </div>
 
-      <RestaurantStats stats={stats} suspendedCount={suspendedCount} />
+      <Tabs defaultValue="active" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="active">
+            Entreprises actives ({businesses.length})
+          </TabsTrigger>
+          <TabsTrigger value="trash" className="text-red-600">
+            <Trash2 className="h-4 w-4 mr-2" />
+            Corbeille ({deletedBusinesses.length})
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="active" className="space-y-6">
+          <RestaurantStats stats={stats} suspendedCount={suspendedCount} />
 
-      <div className="space-y-4">
-        {businesses.map((business) => (
-          <RestaurantCard
-            key={business.id}
-            business={business}
-            onEdit={handleEditBusiness}
-            onGenerateQR={handleGenerateQR}
-            onGeneratePaymentQR={handleGeneratePaymentQR}
-            onToggleStatus={handleToggleStatus}
-            onSuspendForNonPayment={handleSuspendForNonPayment}
-            onReactivateAfterPayment={handleReactivateAfterPayment}
-            onSendNotification={sendNotificationEmail}
-            onSendPaymentReminder={sendPaymentReminder}
-            onDelete={handleDeleteBusiness}
-            onPaymentClick={handlePaymentClick}
+          <div className="space-y-4">
+            {businesses.map((business) => (
+              <RestaurantCard
+                key={business.id}
+                business={business}
+                onEdit={handleEditBusiness}
+                onGenerateQR={handleGenerateQR}
+                onGeneratePaymentQR={handleGeneratePaymentQR}
+                onToggleStatus={handleToggleStatus}
+                onSuspendForNonPayment={handleSuspendForNonPayment}
+                onReactivateAfterPayment={handleReactivateAfterPayment}
+                onSendNotification={sendNotificationEmail}
+                onSendPaymentReminder={sendPaymentReminder}
+                onDelete={handleDeleteBusiness}
+                onPaymentClick={handlePaymentClick}
+              />
+            ))}
+          </div>
+
+          {businesses.length === 0 && (
+            <EmptyRestaurantState onAddBusiness={() => setIsDialogOpen(true)} />
+          )}
+        </TabsContent>
+        
+        <TabsContent value="trash">
+          <TrashManager
+            deletedBusinesses={deletedBusinesses}
+            onRestore={restoreFromTrash}
+            onPermanentDelete={permanentlyDeleteBusiness}
+            onEmptyTrash={emptyTrash}
           />
-        ))}
-      </div>
-
-      {businesses.length === 0 && (
-        <EmptyRestaurantState onAddBusiness={() => setIsDialogOpen(true)} />
-      )}
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -92,6 +91,8 @@ export const useBusinesses = () => {
     }
   ]);
 
+  const [deletedBusinesses, setDeletedBusinesses] = useState<Business[]>([]);
+
   const addBusiness = (newBusiness: Omit<Business, 'id' | 'menuItems' | 'lastUpdate' | 'totalScans'>) => {
     const business: Business = {
       ...newBusiness,
@@ -120,8 +121,31 @@ export const useBusinesses = () => {
 
   const deleteBusiness = (id: number) => {
     const business = businesses.find(b => b.id === id);
-    setBusinesses(prev => prev.filter(b => b.id !== id));
-    toast.success(`${business?.name} supprimé`);
+    if (business) {
+      setDeletedBusinesses(prev => [...prev, business]);
+      setBusinesses(prev => prev.filter(b => b.id !== id));
+      toast.success(`${business.name} déplacé vers la corbeille`);
+    }
+  };
+
+  const restoreFromTrash = (id: number) => {
+    const business = deletedBusinesses.find(b => b.id === id);
+    if (business) {
+      setBusinesses(prev => [...prev, business]);
+      setDeletedBusinesses(prev => prev.filter(b => b.id !== id));
+      toast.success(`${business.name} restauré`);
+    }
+  };
+
+  const permanentlyDeleteBusiness = (id: number) => {
+    const business = deletedBusinesses.find(b => b.id === id);
+    setDeletedBusinesses(prev => prev.filter(b => b.id !== id));
+    toast.success(`${business?.name} supprimé définitivement`);
+  };
+
+  const emptyTrash = () => {
+    setDeletedBusinesses([]);
+    toast.success('Corbeille vidée');
   };
 
   const toggleBusinessStatus = (id: number) => {
@@ -167,9 +191,13 @@ export const useBusinesses = () => {
 
   return {
     businesses,
+    deletedBusinesses,
     addBusiness,
     updateBusiness,
     deleteBusiness,
+    restoreFromTrash,
+    permanentlyDeleteBusiness,
+    emptyTrash,
     toggleBusinessStatus,
     generateQRCode,
     generatePaymentQRCode,
