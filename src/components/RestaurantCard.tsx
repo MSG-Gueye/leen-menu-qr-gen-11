@@ -6,6 +6,7 @@ import { MapPin, Phone, Mail, Users } from 'lucide-react';
 import { Business } from '@/hooks/useBusinesses';
 import { useBusinessTypes } from '@/hooks/useBusinessTypes';
 import RestaurantActions from './RestaurantActions';
+import PaymentStatus from './PaymentStatus';
 
 interface RestaurantCardProps {
   business: Business;
@@ -17,6 +18,7 @@ interface RestaurantCardProps {
   onSendNotification: (business: Business) => void;
   onSendPaymentReminder: (business: Business) => void;
   onDelete: (id: number) => void;
+  onPaymentClick: (businessId: number) => void;
 }
 
 const RestaurantCard: React.FC<RestaurantCardProps> = ({
@@ -28,7 +30,8 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   onReactivateAfterPayment,
   onSendNotification,
   onSendPaymentReminder,
-  onDelete
+  onDelete,
+  onPaymentClick
 }) => {
   const { getBusinessType } = useBusinessTypes();
   const businessType = getBusinessType(business.businessType);
@@ -79,6 +82,10 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
               <span>{business.menuItems} plats au menu</span>
               <span>{business.totalScans || 0} scans QR</span>
               <span>Mis à jour: {business.lastUpdate}</span>
+            </div>
+
+            <div className="mb-3">
+              <PaymentStatus business={business} onPaymentClick={onPaymentClick} />
             </div>
             
             {business.description && (

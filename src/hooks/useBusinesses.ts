@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -16,6 +15,8 @@ export interface Business {
   description?: string;
   qrCodeUrl?: string;
   totalScans?: number;
+  paymentStatus?: 'paid' | 'pending';
+  lastPayment?: string;
 }
 
 export const useBusinesses = () => {
@@ -31,7 +32,9 @@ export const useBusinesses = () => {
       menuItems: 24,
       lastUpdate: "2024-01-15",
       owner: "Marie Dupont",
-      totalScans: 1234
+      totalScans: 1234,
+      paymentStatus: "paid",
+      lastPayment: "2025-01-02"
     },
     {
       id: 2,
@@ -40,11 +43,13 @@ export const useBusinesses = () => {
       phone: "01 56 78 90 12",
       email: "info@douceurs-delices.fr",
       businessType: "patisserie",
-      status: "Actif",
+      status: "Suspendu",
       menuItems: 18,
       lastUpdate: "2024-01-12",
       owner: "Sophie Martin",
-      totalScans: 890
+      totalScans: 890,
+      paymentStatus: "pending",
+      lastPayment: "2024-12-02"
     },
     {
       id: 3,
@@ -57,7 +62,9 @@ export const useBusinesses = () => {
       menuItems: 15,
       lastUpdate: "2024-01-10",
       owner: "Marco Rossi",
-      totalScans: 567
+      totalScans: 567,
+      paymentStatus: "paid",
+      lastPayment: "2025-01-01"
     }
   ]);
 
@@ -67,6 +74,7 @@ export const useBusinesses = () => {
       id: Date.now(),
       menuItems: 0,
       totalScans: 0,
+      paymentStatus: 'pending',
       lastUpdate: new Date().toISOString().split('T')[0]
     };
 

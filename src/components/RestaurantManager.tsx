@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus } from 'lucide-react';
@@ -11,6 +11,7 @@ import RestaurantCard from './RestaurantCard';
 import EmptyRestaurantState from './EmptyRestaurantState';
 
 const RestaurantManager = () => {
+  const navigate = useNavigate();
   const { businesses, addBusiness, updateBusiness, deleteBusiness, toggleBusinessStatus, generateQRCode, getBusinessStats } = useBusinesses();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
@@ -54,7 +55,7 @@ const RestaurantManager = () => {
   const handleSuspendForNonPayment = (id: number) => {
     const business = businesses.find(b => b.id === id);
     if (confirm(`Êtes-vous sûr de vouloir suspendre ${business?.name} pour non-paiement ?`)) {
-      updateBusiness(id, { status: 'Suspendu' });
+      updateBusiness(id, { status: 'Suspendu', paymentStatus: 'pending' });
       toast.success(`${business?.name} suspendu pour non-paiement`);
     }
   };
@@ -62,7 +63,11 @@ const RestaurantManager = () => {
   const handleReactivateAfterPayment = (id: number) => {
     const business = businesses.find(b => b.id === id);
     if (confirm(`Confirmer la réactivation de ${business?.name} après paiement ?`)) {
-      updateBusiness(id, { status: 'Actif' });
+      updateBusiness(id, { 
+        status: 'Actif', 
+        paymentStatus: 'paid',
+        lastPayment: new Date().toISOString().split('T')[0]
+      });
       toast.success(`${business?.name} réactivé après paiement`);
     }
   };
@@ -75,12 +80,16 @@ const RestaurantManager = () => {
     toast.success(`Rappel de paiement envoyé à ${business.name}`);
   };
 
+  const handlePaymentClick = (businessId: number) => {
+    navigate(`/payment/${businessId}`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Gestion des entreprises</h2>
-          <p className="text-gray-600">Gérez tous vos établissements clients</p>
+          <p className="text-gray-600">Gérez tous vos établissements clients - Abonnement: 15,000 FCFA/mois</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -117,6 +126,7 @@ const RestaurantManager = () => {
             onSendNotification={sendNotificationEmail}
             onSendPaymentReminder={sendPaymentReminder}
             onDelete={handleDeleteBusiness}
+            onPaymentClick={handlePaymentClick}
           />
         ))}
       </div>
