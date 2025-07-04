@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useBusinessTypes } from '@/hooks/useBusinessTypes';
-import { Business } from '@/hooks/useBusinesses';
+import { Business, subscriptionPackages } from '@/hooks/useBusinesses';
 
 interface BusinessFormProps {
   onSubmit: (business: Omit<Business, 'id' | 'menuItems' | 'lastUpdate' | 'totalScans'>) => void;
@@ -24,7 +24,8 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ onSubmit, initialData, isEd
     businessType: initialData?.businessType || 'restaurant',
     status: initialData?.status || 'Actif' as const,
     owner: initialData?.owner || '',
-    description: initialData?.description || ''
+    description: initialData?.description || '',
+    subscriptionPackage: initialData?.subscriptionPackage || 'basic' as const
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -63,6 +64,25 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ onSubmit, initialData, isEd
                 <div className="flex items-center gap-2">
                   <span>{type.icon}</span>
                   <span>{type.name}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label htmlFor="subscriptionPackage">Package d'abonnement *</Label>
+        <Select value={formData.subscriptionPackage} onValueChange={(value) => handleChange('subscriptionPackage', value as 'basic' | 'premium' | 'enterprise')}>
+          <SelectTrigger>
+            <SelectValue placeholder="Choisir un package" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(subscriptionPackages).map(([key, pkg]) => (
+              <SelectItem key={key} value={key}>
+                <div className="flex flex-col">
+                  <span className="font-medium">{pkg.name}</span>
+                  <span className="text-sm text-gray-500">{pkg.price.toLocaleString()} FCFA/mois</span>
                 </div>
               </SelectItem>
             ))}

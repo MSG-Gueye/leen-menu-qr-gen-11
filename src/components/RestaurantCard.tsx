@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Phone, Mail, Users } from 'lucide-react';
-import { Business } from '@/hooks/useBusinesses';
+import { Business, subscriptionPackages } from '@/hooks/useBusinesses';
 import { useBusinessTypes } from '@/hooks/useBusinessTypes';
 import RestaurantActions from './RestaurantActions';
 import PaymentStatus from './PaymentStatus';
@@ -12,6 +12,7 @@ interface RestaurantCardProps {
   business: Business;
   onEdit: (business: Business) => void;
   onGenerateQR: (id: number) => void;
+  onGeneratePaymentQR: (id: number) => void;
   onToggleStatus: (id: number) => void;
   onSuspendForNonPayment: (id: number) => void;
   onReactivateAfterPayment: (id: number) => void;
@@ -25,6 +26,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   business,
   onEdit,
   onGenerateQR,
+  onGeneratePaymentQR,
   onToggleStatus,
   onSuspendForNonPayment,
   onReactivateAfterPayment,
@@ -35,6 +37,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
 }) => {
   const { getBusinessType } = useBusinessTypes();
   const businessType = getBusinessType(business.businessType);
+  const subscriptionPackage = subscriptionPackages[business.subscriptionPackage];
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -82,6 +85,9 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
               <span>{business.menuItems} plats au menu</span>
               <span>{business.totalScans || 0} scans QR</span>
               <span>Mis à jour: {business.lastUpdate}</span>
+              <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                {subscriptionPackage.name} - {subscriptionPackage.price.toLocaleString()} FCFA/mois
+              </Badge>
             </div>
 
             <div className="mb-3">
@@ -97,6 +103,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
             business={business}
             onEdit={onEdit}
             onGenerateQR={onGenerateQR}
+            onGeneratePaymentQR={onGeneratePaymentQR}
             onToggleStatus={onToggleStatus}
             onSuspendForNonPayment={onSuspendForNonPayment}
             onReactivateAfterPayment={onReactivateAfterPayment}

@@ -1,13 +1,14 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Edit, QrCode, PowerOff, Power, Mail, Trash2 } from 'lucide-react';
+import { Edit, QrCode, PowerOff, Power, Mail, Trash2, CreditCard } from 'lucide-react';
 import { Business } from '@/hooks/useBusinesses';
 
 interface RestaurantActionsProps {
   business: Business;
   onEdit: (business: Business) => void;
   onGenerateQR: (id: number) => void;
+  onGeneratePaymentQR: (id: number) => void;
   onToggleStatus: (id: number) => void;
   onSuspendForNonPayment: (id: number) => void;
   onReactivateAfterPayment: (id: number) => void;
@@ -20,6 +21,7 @@ const RestaurantActions: React.FC<RestaurantActionsProps> = ({
   business,
   onEdit,
   onGenerateQR,
+  onGeneratePaymentQR,
   onToggleStatus,
   onSuspendForNonPayment,
   onReactivateAfterPayment,
@@ -44,6 +46,14 @@ const RestaurantActions: React.FC<RestaurantActionsProps> = ({
           className="text-blue-600 hover:text-blue-700 hover:border-blue-300"
         >
           <QrCode className="h-4 w-4" />
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => onGeneratePaymentQR(business.id)}
+          className="text-green-600 hover:text-green-700 hover:border-green-300"
+        >
+          <CreditCard className="h-4 w-4" />
         </Button>
         <Button 
           variant="outline" 
