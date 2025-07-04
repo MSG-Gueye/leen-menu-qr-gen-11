@@ -17,7 +17,26 @@ export interface Business {
   totalScans?: number;
   paymentStatus?: 'paid' | 'pending';
   lastPayment?: string;
+  subscriptionPackage?: 'basic' | 'premium' | 'enterprise';
 }
+
+export const subscriptionPackages = {
+  basic: {
+    name: 'Package Basic',
+    price: 15000,
+    features: ['Menu numérique', 'QR Code', 'Support email']
+  },
+  premium: {
+    name: 'Package Premium', 
+    price: 25000,
+    features: ['Menu numérique', 'QR Code', 'Analytics', 'Support prioritaire', 'Personnalisation avancée']
+  },
+  enterprise: {
+    name: 'Package Enterprise',
+    price: 45000,
+    features: ['Tout Premium', 'Multi-restaurants', 'API access', 'Support dédié', 'Formation']
+  }
+};
 
 export const useBusinesses = () => {
   const [businesses, setBusinesses] = useState<Business[]>([
@@ -34,7 +53,8 @@ export const useBusinesses = () => {
       owner: "Marie Dupont",
       totalScans: 1234,
       paymentStatus: "paid",
-      lastPayment: "2025-01-02"
+      lastPayment: "2025-01-02",
+      subscriptionPackage: "premium"
     },
     {
       id: 2,
@@ -49,7 +69,8 @@ export const useBusinesses = () => {
       owner: "Sophie Martin",
       totalScans: 890,
       paymentStatus: "pending",
-      lastPayment: "2024-12-02"
+      lastPayment: "2024-12-02",
+      subscriptionPackage: "basic"
     },
     {
       id: 3,
@@ -64,7 +85,8 @@ export const useBusinesses = () => {
       owner: "Marco Rossi",
       totalScans: 567,
       paymentStatus: "paid",
-      lastPayment: "2025-01-01"
+      lastPayment: "2025-01-01",
+      subscriptionPackage: "enterprise"
     }
   ]);
 

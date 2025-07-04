@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from 'react-router-dom';
-import { QrCode, Menu, Users, Smartphone, Zap, BarChart3, Shield, Palette } from 'lucide-react';
+import { QrCode, Menu, Users, Smartphone, Zap, BarChart3, Shield, Palette, CreditCard } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -11,7 +10,7 @@ const Index = () => {
   const features = [
     {
       icon: <Menu className="h-8 w-8 text-scanner-red" />,
-      title: "Éditeur de menus intuitif",
+      title: "Éditeur de menus intuitif", 
       description: "Créez et modifiez vos menus avec notre éditeur drag & drop révolutionnaire"
     },
     {
@@ -76,6 +75,14 @@ const Index = () => {
               className="text-scanner-gray hover:text-scanner-dark transition-colors"
             >
               Voir une démo
+            </Button>
+            <Button 
+              onClick={() => navigate('/paiement-public')}
+              variant="outline"
+              className="text-scanner-red border-scanner-red hover:bg-scanner-red hover:text-white transition-colors"
+            >
+              <CreditCard className="h-4 w-4 mr-2" />
+              Faire un paiement
             </Button>
             <Button 
               onClick={() => navigate('/admin')}
@@ -247,7 +254,7 @@ const Index = () => {
           </div>
           <div className="border-t border-gray-700 pt-8 text-center">
             <p className="text-gray-400">
-              © 2024 Scanner-Leen. Tous droits réservés. Fait avec ❤️ en France.
+              © 2025 Scanner-Leen. Tous droits réservés. Fait avec ❤️ en France.
             </p>
           </div>
         </div>
