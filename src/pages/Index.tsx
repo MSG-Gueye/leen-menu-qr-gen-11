@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, Users, BarChart3, QrCode } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -33,30 +33,30 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-scanner-green-50 to-white">
       <header className="bg-white shadow">
         <div className="container mx-auto px-4 py-6 flex items-center justify-between">
-          <a href="/" className="text-2xl font-bold text-scanner-green-600">
+          <Link to="/" className="text-2xl font-bold text-scanner-green-600">
             QR Menu Pro
-          </a>
+          </Link>
           <nav>
             <ul className="flex space-x-6">
               <li>
-                <a href="/" className="text-gray-600 hover:text-scanner-green-600">
+                <Link to="/" className="text-gray-600 hover:text-scanner-green-600">
                   Accueil
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/features" className="text-gray-600 hover:text-scanner-green-600">
+                <Link to="/features" className="text-gray-600 hover:text-scanner-green-600">
                   Fonctionnalités
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/pricing" className="text-gray-600 hover:text-scanner-green-600">
+                <Link to="/pricing" className="text-gray-600 hover:text-scanner-green-600">
                   Tarifs
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/contact" className="text-gray-600 hover:text-scanner-green-600">
+                <Link to="/contact" className="text-gray-600 hover:text-scanner-green-600">
                   Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </nav>
@@ -112,7 +112,7 @@ const Index = () => {
           <Button 
             size="lg" 
             className="bg-scanner-green-600 hover:bg-scanner-green-700 text-white px-8 py-3 text-lg"
-            onClick={() => navigate('/admin')}
+            onClick={() => navigate('/subscription-request')}
           >
             Commencer dès maintenant
           </Button>
