@@ -78,7 +78,7 @@ const SubscriptionRequest = () => {
       <header className="bg-white shadow">
         <div className="container mx-auto px-4 py-6 flex items-center justify-between">
           <a href="/" className="text-2xl font-bold text-scanner-green-600">
-            QR Menu Pro
+            Kaay-Scanner
           </a>
           <nav>
             <ul className="flex space-x-6">
@@ -98,7 +98,7 @@ const SubscriptionRequest = () => {
             <span className="text-scanner-green-600 block">d'Abonnement</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Remplissez le formulaire ci-dessous pour commencer votre aventure avec QR Menu Pro. 
+            Remplissez le formulaire ci-dessous pour commencer votre aventure avec Kaay-Scanner. 
             Notre équipe vous contactera pour finaliser votre abonnement.
           </p>
         </div>
@@ -263,6 +263,7 @@ const SubscriptionRequest = () => {
                   <Badge className="bg-scanner-green-600">Sélectionné</Badge>
                 </CardTitle>
                 <div className="text-3xl font-bold text-scanner-green-600">
+                  <div className="text-sm text-gray-500 mb-1">Frais d'installation: {formatPrice(packageInfo.setupFee)}</div>
                   {formatPrice(packageInfo.price)}
                   <span className="text-lg text-gray-600 font-normal">/mois</span>
                 </div>

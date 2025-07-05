@@ -34,7 +34,7 @@ const Index = () => {
       <header className="bg-white shadow">
         <div className="container mx-auto px-4 py-6 flex items-center justify-between">
           <Link to="/" className="text-2xl font-bold text-scanner-green-600">
-            QR Menu Pro
+            Kaay-Scanner
           </Link>
           <nav>
             <ul className="flex space-x-6">
@@ -67,7 +67,7 @@ const Index = () => {
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-gray-900 mb-6">
             Plateforme de Gestion
-            <span className="text-scanner-green-600 block">QR Menu Pro</span>
+            <span className="text-scanner-green-600 block">Kaay-Scanner</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             La solution complète pour gérer vos établissements clients, générer des QR codes 

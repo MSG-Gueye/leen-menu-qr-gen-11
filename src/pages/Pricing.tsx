@@ -39,7 +39,7 @@ const Pricing = () => {
       <header className="bg-white shadow">
         <div className="container mx-auto px-4 py-6 flex items-center justify-between">
           <a href="/" className="text-2xl font-bold text-scanner-green-600">
-            QR Menu Pro
+            Kaay-Scanner
           </a>
           <nav>
             <ul className="flex space-x-6">
@@ -81,6 +81,7 @@ const Pricing = () => {
                   {pkg.name}
                 </CardTitle>
                 <div className="mb-4">
+                  <div className="text-sm text-gray-500 mb-1">Frais d'installation: {formatPrice(pkg.setupFee)}</div>
                   <span className="text-4xl font-bold text-scanner-green-600">
                     {formatPrice(pkg.price)}
                   </span>

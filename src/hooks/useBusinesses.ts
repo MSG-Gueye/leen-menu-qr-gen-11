@@ -24,18 +24,21 @@ export interface Business {
 export const subscriptionPackages = {
   basic: {
     name: 'Package Basic',
-    price: 15000,
-    features: ['Menu numérique', 'QR Code', 'Support email']
+    price: 35000,
+    setupFee: 35000,
+    features: ['Menu numérique personnalisé', 'QR Code design standard', '10 QR codes physiques', 'Hébergement sécurisé', 'Support email']
   },
   premium: {
     name: 'Package Premium', 
-    price: 25000,
-    features: ['Menu numérique', 'QR Code', 'Analytics', 'Support prioritaire', 'Personnalisation avancée']
+    price: 75000,
+    setupFee: 75000,
+    features: ['Menu numérique entièrement personnalisé', 'Design haut de gamme du QR code', '30 QR codes physiques', 'Hébergement sécurisé et maintenance', 'Mises à jour illimitées', 'Statistiques de consultation', 'Support prioritaire 7j/7']
   },
   enterprise: {
     name: 'Package Enterprise',
-    price: 45000,
-    features: ['Tout Premium', 'Multi-restaurants', 'API access', 'Support dédié', 'Formation']
+    price: 120000,
+    setupFee: 120000,
+    features: ['Tout Premium', 'QR codes illimités', 'Multi-restaurants', 'API personnalisée', 'Formation dédiée', 'Support VIP 24h/24']
   }
 };
 

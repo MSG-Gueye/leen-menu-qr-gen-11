@@ -34,17 +34,17 @@ const Contact = () => {
     {
       icon: <MapPin className="h-8 w-8 text-scanner-green-600" />,
       title: "Adresse",
-      details: ["123 Avenue de l'Innovation", "Dakar, Sénégal", "BP 12345"]
+      details: ["Dakar, Sénégal"]
     },
     {
       icon: <Phone className="h-8 w-8 text-scanner-green-600" />,
       title: "Téléphone",
-      details: ["+221 33 123 45 67", "+221 77 123 45 67"]
+      details: ["+221 77 000 00 00"]
     },
     {
       icon: <Mail className="h-8 w-8 text-scanner-green-600" />,
       title: "Email",
-      details: ["contact@qrmenupro.sn", "support@qrmenupro.sn"]
+      details: ["contact@kaay-scanner.sn", "support@kaay-scanner.sn"]
     },
     {
       icon: <Clock className="h-8 w-8 text-scanner-green-600" />,
@@ -79,7 +79,7 @@ const Contact = () => {
       <header className="bg-white shadow">
         <div className="container mx-auto px-4 py-6 flex items-center justify-between">
           <a href="/" className="text-2xl font-bold text-scanner-green-600">
-            QR Menu Pro
+            Kaay-Scanner
           </a>
           <nav>
             <ul className="flex space-x-6">

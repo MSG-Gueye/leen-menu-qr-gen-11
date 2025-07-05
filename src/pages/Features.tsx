@@ -62,7 +62,7 @@ const Features = () => {
       <header className="bg-white shadow">
         <div className="container mx-auto px-4 py-6 flex items-center justify-between">
           <a href="/" className="text-2xl font-bold text-scanner-green-600">
-            QR Menu Pro
+            Kaay-Scanner
           </a>
           <nav>
             <ul className="flex space-x-6">
@@ -82,7 +82,7 @@ const Features = () => {
             <span className="text-scanner-green-600 block">Complètes</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Découvrez toutes les fonctionnalités qui font de QR Menu Pro la solution idéale 
+            Découvrez toutes les fonctionnalités qui font de Kaay-Scanner la solution idéale 
             pour digitaliser vos menus et optimiser votre business.
           </p>
         </div>
@@ -120,7 +120,7 @@ const Features = () => {
             Prêt à transformer votre restaurant ?
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            Rejoignez des centaines d'établissements qui font confiance à QR Menu Pro
+            Rejoignez des centaines d'établissements qui font confiance à Kaay-Scanner
           </p>
           <Button 
             size="lg" 
