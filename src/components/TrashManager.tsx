@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RestoreIcon, Trash2, AlertTriangle } from 'lucide-react';
+import { ArchiveRestore, Trash2, AlertTriangle } from 'lucide-react';
 import { Business } from '@/hooks/useBusinesses';
 import { useBusinessTypes } from '@/hooks/useBusinessTypes';
 
@@ -104,7 +104,7 @@ const TrashManager: React.FC<TrashManagerProps> = ({
                         onClick={() => onRestore(business.id)}
                         className="text-green-600 hover:text-green-700 hover:border-green-300"
                       >
-                        <RestoreIcon className="h-4 w-4 mr-2" />
+                        <ArchiveRestore className="h-4 w-4 mr-2" />
                         Restaurer
                       </Button>
                       <Button 
