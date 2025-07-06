@@ -9,6 +9,7 @@ import SubscriptionRequest from "./pages/SubscriptionRequest";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import MenuPage from "./pages/MenuPage";
+import ClientMenu from "./pages/ClientMenu";
 
 export const navItems = [
   {
@@ -65,6 +66,13 @@ export const navItems = [
     to: "/menu/:id",
     icon: <Star className="h-4 w-4" />,
     page: <MenuPage />,
+    protected: false,
+  },
+  {
+    title: "Client Menu",
+    to: "/client-menu/:id",
+    icon: <Star className="h-4 w-4" />,
+    page: <ClientMenu />,
     protected: false,
   },
   {

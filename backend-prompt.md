@@ -1,17 +1,27 @@
 
-# Prompt pour développeur Backend - Plateforme de Gestion d'Entreprises
+# Prompt pour développeur Backend - Kaay Scanner
 
 ## Contexte
 
-Vous devez développer le backend d'une plateforme de gestion d'entreprises (restaurants, pâtisseries, etc.) avec génération de menus QR. Le frontend React/TypeScript existe déjà et utilise actuellement des données simulées.
+Vous devez développer le backend Node.js/Express pour Kaay Scanner, une plateforme sénégalaise de gestion d'entreprises (restaurants, pâtisseries, etc.) avec génération de menus QR. Le frontend React/TypeScript existe déjà et utilise actuellement des données simulées.
+
+### Informations sur l'entreprise
+- **Nom**: Kaay Scanner  
+- **Localisation**: Dakar, Sénégal
+- **Contact**: +221 77 000 00 00 / contact@kaay-scanner.sn
+- **Devise**: Franc CFA (FCFA)
+- **Packages**: Basic (25k), Premium (35k), Enterprise (75k FCFA/mois)
 
 ## Votre mission
 
 Créer un backend robuste et évolutif qui supportera:
 - Gestion d'entreprises et de leurs menus
+- **Limitation modifications menu client** (2/mois Basic, 5/mois Premium, illimité Enterprise)
 - Génération et suivi de QR codes
-- Système de notifications
-- Authentification et autorisation
+- Système de notifications et emails
+- Authentification et autorisation multi-niveau
+- Demandes d'abonnement en ligne
+- Statistiques et analytics
 - APIs RESTful complètes
 
 ## Technologies imposées
@@ -45,14 +55,16 @@ Référez-vous au fichier `backend-specifications.md` pour:
 
 3. **CRUD de base**
    - Types d'entreprises (business_types)
-   - Entreprises (businesses)
-   - Menus (menu_items)
+   - Entreprises (businesses) avec gestion abonnements
+   - Menus (menu_items) avec catégories
+   - **Système de limitations mensuelles** pour modifications menu
 
 ### Phase 2 (Important)
-4. **QR Codes**
-   - Génération automatique de QR codes
-   - Suivi des scans avec analytics
-   - URLs publiques pour les menus
+4. **QR Codes & Menu Public**
+   - Génération automatique de QR codes (menu + paiement)
+   - Suivi des scans avec analytics géolocalisées
+   - URLs publiques pour consultation menus
+   - **Interface client** pour gestion menu avec limitations
 
 5. **Upload d'images**
    - Storage Supabase pour images de plats
@@ -60,14 +72,17 @@ Référez-vous au fichier `backend-specifications.md` pour:
    - Validation des formats
 
 ### Phase 3 (Avancé)
-6. **Notifications**
+6. **Notifications & Communications**
    - Système de notifications en temps réel
-   - Envoi d'emails automatiques
+   - Emails automatiques (Resend) - rappels paiement, limites
+   - **Demandes d'abonnement** avec suivi workflow
    - Templates personnalisables
 
-7. **Analytics**
-   - Statistiques de scans QR
-   - Tableaux de bord
+7. **Analytics & Reporting**
+   - Statistiques de scans QR avec géolocalisation
+   - Tableaux de bord entreprises et admin
+   - **Suivi modifications menu** par package
+   - Métriques de performance
    - Export de données
 
 ## Contraintes techniques
@@ -96,11 +111,12 @@ Référez-vous au fichier `backend-specifications.md` pour:
 
 ## Questions à poser avant de commencer
 
-1. Préférez-vous un backend en Node.js, Python, ou Supabase Edge Functions?
-2. Avez-vous des contraintes de budget pour les services externes?
-3. Souhaitez-vous un système multi-tenant (plusieurs admins) ou mono-tenant?
-4. Quelle est votre priorité: rapidité de développement ou performance optimale?
-5. Avez-vous des exigences spécifiques de sécurité ou compliance?
+1. **Backend recommandé**: Node.js/Express (stack maturité et écosystème riche)
+2. **Services externes**: Supabase (DB/Auth) + Resend (emails) - budget optimisé
+3. **Architecture**: Multi-tenant avec isolation par business_id (RLS Supabase)  
+4. **Priorité**: MVP rapide puis optimisations (approche itérative)
+5. **Sécurité**: Standard (HTTPS, validation, rate limiting, RLS)
+6. **Spécificités Sénégal**: Support FCFA, numéros locaux (+221), français
 
 ## Ressources disponibles
 
