@@ -75,52 +75,64 @@ const SubscriptionRequest = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-scanner-green-50 to-white">
-      <header className="bg-white shadow">
-        <div className="container mx-auto px-4 py-6 flex items-center justify-between">
-          <a href="/" className="text-2xl font-bold text-scanner-green-600">
+      <header className="bg-white shadow sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 sm:py-6 flex items-center justify-between">
+          <a href="/" className="text-xl sm:text-2xl font-bold text-scanner-green-600">
             Kaay-Scanner
           </a>
-          <nav>
-            <ul className="flex space-x-6">
-              <li><a href="/" className="text-gray-600 hover:text-scanner-green-600">Accueil</a></li>
-              <li><a href="/features" className="text-gray-600 hover:text-scanner-green-600">Fonctionnalités</a></li>
-              <li><a href="/pricing" className="text-gray-600 hover:text-scanner-green-600">Tarifs</a></li>
-              <li><a href="/contact" className="text-gray-600 hover:text-scanner-green-600">Contact</a></li>
+          <nav className="hidden md:block">
+            <ul className="flex space-x-4 lg:space-x-6">
+              <li><a href="/" className="text-gray-600 hover:text-scanner-green-600 text-sm lg:text-base">Accueil</a></li>
+              <li><a href="/features" className="text-gray-600 hover:text-scanner-green-600 text-sm lg:text-base">Fonctionnalités</a></li>
+              <li><a href="/pricing" className="text-gray-600 hover:text-scanner-green-600 text-sm lg:text-base">Tarifs</a></li>
+              <li><a href="/contact" className="text-gray-600 hover:text-scanner-green-600 text-sm lg:text-base">Contact</a></li>
             </ul>
           </nav>
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="md:hidden border-scanner-green-600 text-scanner-green-600"
+            onClick={() => window.history.back()}
+          >
+            ← Retour
+          </Button>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-16">
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
+      <main className="container mx-auto px-4 py-8 sm:py-16">
+        <div className="text-center mb-8 sm:mb-16">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6">
             Demande
             <span className="text-scanner-green-600 block">d'Abonnement</span>
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+          <p className="text-lg sm:text-xl text-gray-600 mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
             Remplissez le formulaire ci-dessous pour commencer votre aventure avec Kaay-Scanner. 
             Notre équipe vous contactera pour finaliser votre abonnement.
           </p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
+            <p className="text-sm text-blue-800 font-medium">🎁 Offre de lancement</p>
+            <p className="text-xs text-blue-600">Premier mois gratuit + installation offerte</p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
           {/* Formulaire */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 order-2 lg:order-1">
             <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                  <Building2 className="h-6 w-6 text-scanner-green-600" />
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-3">
+                  <Building2 className="h-5 w-5 sm:h-6 sm:w-6 text-scanner-green-600" />
                   Informations de votre établissement
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm sm:text-base">
                   Veuillez fournir les détails de votre restaurant ou établissement
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="restaurantName">Nom du restaurant *</Label>
+                      <Label htmlFor="restaurantName" className="text-sm font-medium">Nom du restaurant *</Label>
                       <Input
                         id="restaurantName"
                         name="restaurantName"
@@ -132,7 +144,7 @@ const SubscriptionRequest = () => {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="businessType">Type d'établissement *</Label>
+                      <Label htmlFor="businessType" className="text-sm font-medium">Type d'établissement *</Label>
                       <Select value={formData.businessType} onValueChange={(value) => handleSelectChange('businessType', value)}>
                         <SelectTrigger className="mt-1">
                           <SelectValue placeholder="Sélectionnez le type" />
@@ -149,7 +161,7 @@ const SubscriptionRequest = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="address">Adresse complète *</Label>
+                    <Label htmlFor="address" className="text-sm font-medium">Adresse complète *</Label>
                     <Input
                       id="address"
                       name="address"
@@ -161,9 +173,9 @@ const SubscriptionRequest = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="ownerName">Nom du propriétaire *</Label>
+                      <Label htmlFor="ownerName" className="text-sm font-medium">Nom du propriétaire *</Label>
                       <Input
                         id="ownerName"
                         name="ownerName"
@@ -175,7 +187,7 @@ const SubscriptionRequest = () => {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="phone">Téléphone *</Label>
+                      <Label htmlFor="phone" className="text-sm font-medium">Téléphone *</Label>
                       <Input
                         id="phone"
                         name="phone"
@@ -190,7 +202,7 @@ const SubscriptionRequest = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="email">Email *</Label>
+                    <Label htmlFor="email" className="text-sm font-medium">Email *</Label>
                     <Input
                       id="email"
                       name="email"
@@ -203,9 +215,9 @@ const SubscriptionRequest = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="selectedPackage">Package choisi *</Label>
+                      <Label htmlFor="selectedPackage" className="text-sm font-medium">Package choisi *</Label>
                       <Select value={formData.selectedPackage} onValueChange={(value) => handleSelectChange('selectedPackage', value)}>
                         <SelectTrigger className="mt-1">
                           <SelectValue />
@@ -218,7 +230,7 @@ const SubscriptionRequest = () => {
                       </Select>
                     </div>
                     <div>
-                      <Label htmlFor="preferredStartDate">Date de début souhaitée</Label>
+                      <Label htmlFor="preferredStartDate" className="text-sm font-medium">Date de début souhaitée</Label>
                       <Input
                         id="preferredStartDate"
                         name="preferredStartDate"
@@ -231,7 +243,7 @@ const SubscriptionRequest = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="specialRequests">Demandes spéciales ou questions</Label>
+                    <Label htmlFor="specialRequests" className="text-sm font-medium">Demandes spéciales ou questions</Label>
                     <Textarea
                       id="specialRequests"
                       name="specialRequests"
@@ -243,11 +255,26 @@ const SubscriptionRequest = () => {
                     />
                   </div>
 
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <input type="checkbox" id="terms" required className="rounded border-gray-300" />
+                      <Label htmlFor="terms" className="text-sm">
+                        J'accepte les <a href="#" className="text-scanner-green-600 hover:underline">conditions générales</a> et la <a href="#" className="text-scanner-green-600 hover:underline">politique de confidentialité</a>
+                      </Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input type="checkbox" id="newsletter" className="rounded border-gray-300" />
+                      <Label htmlFor="newsletter" className="text-sm text-gray-600">
+                        Je souhaite recevoir les actualités et promotions par email
+                      </Label>
+                    </div>
+                  </div>
+
                   <Button 
                     type="submit" 
-                    className="w-full bg-scanner-green-600 hover:bg-scanner-green-700 py-3 text-lg"
+                    className="w-full bg-scanner-green-600 hover:bg-scanner-green-700 py-3 text-lg font-semibold"
                   >
-                    Envoyer ma demande d'abonnement
+                    🚀 Envoyer ma demande d'abonnement
                   </Button>
                 </form>
               </CardContent>
@@ -255,7 +282,7 @@ const SubscriptionRequest = () => {
           </div>
 
           {/* Résumé du package */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6 order-1 lg:order-2">
             <Card className="shadow-lg border-2 border-scanner-green-600">
               <CardHeader>
                 <CardTitle className="text-xl font-bold text-gray-900 flex items-center justify-between">

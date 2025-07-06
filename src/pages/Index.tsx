@@ -73,28 +73,36 @@ const Index = () => {
             La solution complète pour gérer vos établissements clients, générer des QR codes 
             personnalisés et suivre leurs performances en temps réel.
           </p>
-          <div className="flex gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg" 
-              className="bg-scanner-green-600 hover:bg-scanner-green-700 text-white px-8 py-3 text-lg"
-              onClick={() => navigate('/admin')}
+              className="bg-scanner-green-600 hover:bg-scanner-green-700 text-white px-6 sm:px-8 py-3 text-base sm:text-lg"
+              onClick={() => navigate('/login')}
             >
               Accéder au tableau de bord
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="border-scanner-green-600 text-scanner-green-600 hover:bg-scanner-green-600 hover:text-white px-6 sm:px-8 py-3 text-base sm:text-lg"
+              onClick={() => navigate('/subscription-request')}
+            >
+              Essai gratuit
             </Button>
           </div>
         </div>
 
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-12 lg:mb-16">
           {features.map((feature, index) => (
             <Card key={index} className="shadow-md hover:shadow-lg transition-shadow duration-300">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold flex items-center gap-3">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2 sm:gap-3">
                   {feature.icon}
-                  {feature.title}
+                  <span className="text-sm sm:text-base">{feature.title}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription className="text-gray-600">
+                <CardDescription className="text-gray-600 text-sm">
                   {feature.description}
                 </CardDescription>
               </CardContent>
