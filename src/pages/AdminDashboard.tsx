@@ -45,6 +45,8 @@ import { toast } from 'sonner';
 import RestaurantDetailModal from '../components/RestaurantDetailModal';
 import BusinessForm from '../components/BusinessForm';
 import BusinessTypeManager from '../components/BusinessTypeManager';
+import MenuManager from '../components/MenuManager';
+import NotificationCenter from '../components/NotificationCenter';
 import { useBusinesses, Business } from '@/hooks/useBusinesses';
 import { useBusinessTypes } from '@/hooks/useBusinessTypes';
 
@@ -256,11 +258,12 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="businesses" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="businesses">Entreprises</TabsTrigger>
+            <TabsTrigger value="menus">Menus</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="types">Types</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="payments">Paiements</TabsTrigger>
             <TabsTrigger value="settings">Paramètres</TabsTrigger>
           </TabsList>
 
@@ -404,6 +407,14 @@ const AdminDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="menus">
+            <MenuManager />
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <NotificationCenter />
           </TabsContent>
 
           <TabsContent value="types">
