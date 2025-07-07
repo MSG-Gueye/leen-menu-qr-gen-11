@@ -352,13 +352,24 @@ const AdminDashboard = () => {
                               variant="ghost" 
                               size="sm"
                               onClick={() => handleViewRestaurant(restaurant)}
+                              title="Voir détails"
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
                             <Button 
                               variant="ghost" 
                               size="sm"
+                              onClick={() => window.open(`/client-menu/${restaurant.id}`, '_blank')}
+                              title="Accès client menu"
+                              className="text-blue-600 hover:text-blue-700"
+                            >
+                              <QrCode className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
                               onClick={() => handleEditRestaurant(restaurant.id)}
+                              title="Modifier"
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -367,6 +378,7 @@ const AdminDashboard = () => {
                               size="sm" 
                               className="text-red-600 hover:text-red-700"
                               onClick={() => handleDeleteRestaurant(restaurant.id)}
+                              title="Supprimer"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
