@@ -75,7 +75,10 @@ const MenuManager = () => {
     businessName: ''
   });
 
-  const categories = ["Entrées", "Plats principaux", "Desserts", "Boissons", "Sushis"];
+  const [categories, setCategories] = useState(["Entrées", "Plats principaux", "Desserts", "Boissons", "Sushis"]);
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
+  const [categoryForm, setCategoryForm] = useState({ name: '' });
   const businesses = [
     { id: 1, name: "Le Petit Bistro" },
     { id: 2, name: "Sushi Zen" },
@@ -222,13 +225,84 @@ const MenuManager = () => {
           <p className="text-gray-600">Gérez les plats de toutes les entreprises</p>
         </div>
         
-        <Dialog open={isAddDishOpen} onOpenChange={setIsAddDishOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-scanner-green-600 hover:bg-scanner-green-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Nouveau plat
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Gérer catégories
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Gestion des catégories</DialogTitle>
+                <DialogDescription>Ajoutez ou modifiez les catégories de plats</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Nouvelle catégorie"
+                    value={categoryForm.name}
+                    onChange={(e) => setCategoryForm({name: e.target.value})}
+                  />
+                  <Button onClick={() => {
+                    if (categoryForm.name && !categories.includes(categoryForm.name)) {
+                      if (editingCategory) {
+                        setCategories(categories.map(c => c === editingCategory ? categoryForm.name : c));
+                        setEditingCategory(null);
+                        toast.success('Catégorie modifiée');
+                      } else {
+                        setCategories([...categories, categoryForm.name]);
+                        toast.success('Catégorie ajoutée');
+                      }
+                      setCategoryForm({name: ''});
+                    }
+                  }}>
+                    {editingCategory ? 'Modifier' : 'Ajouter'}
+                  </Button>
+                  {editingCategory && (
+                    <Button variant="outline" onClick={() => {
+                      setEditingCategory(null);
+                      setCategoryForm({name: ''});
+                    }}>
+                      Annuler
+                    </Button>
+                  )}
+                </div>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {categories.map((category) => (
+                    <div key={category} className="flex items-center justify-between p-2 border rounded">
+                      <span>{category}</span>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => {
+                          setEditingCategory(category);
+                          setCategoryForm({name: category});
+                        }}>
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => {
+                          if (confirm(`Supprimer la catégorie "${category}" ?`)) {
+                            setCategories(categories.filter(c => c !== category));
+                            toast.success('Catégorie supprimée');
+                          }
+                        }}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+          
+          <Dialog open={isAddDishOpen} onOpenChange={setIsAddDishOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-scanner-green-600 hover:bg-scanner-green-700">
+                <Plus className="h-4 w-4 mr-2" />
+                Nouveau plat
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Ajouter un nouveau plat</DialogTitle>
@@ -337,7 +411,8 @@ const MenuManager = () => {
               </div>
             </div>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       {/* Stats */}

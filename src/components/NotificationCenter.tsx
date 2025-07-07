@@ -28,8 +28,18 @@ const NotificationCenter = () => {
     recipients: 'all',
     subject: '',
     message: '',
-    type: 'general' as 'general' | 'payment' | 'update' | 'warning'
+    type: 'general' as 'general' | 'payment' | 'update' | 'warning' | 'welcome' | 'maintenance' | 'promotion'
   });
+
+  const messageTypes = [
+    { value: 'general', label: 'Message général', icon: '📋' },
+    { value: 'payment', label: 'Rappel de paiement', icon: '💳' },
+    { value: 'update', label: 'Mise à jour', icon: '🔄' },
+    { value: 'warning', label: 'Avertissement', icon: '⚠️' },
+    { value: 'welcome', label: 'Bienvenue', icon: '👋' },
+    { value: 'maintenance', label: 'Maintenance', icon: '🔧' },
+    { value: 'promotion', label: 'Promotion', icon: '🎉' }
+  ];
 
   const businesses = [
     { id: 1, name: "Le Petit Bistro", email: "bistro@email.com" },
@@ -110,7 +120,7 @@ const NotificationCenter = () => {
       ...emailForm,
       subject: template.subject,
       message: template.message,
-      type: templateKey === 'payment' ? 'payment' : templateKey === 'update' ? 'update' : 'general'
+      type: templateKey === 'payment' ? 'payment' : templateKey === 'update' ? 'update' : 'welcome'
     });
   };
 
@@ -174,18 +184,36 @@ const NotificationCenter = () => {
                     </Select>
                   </div>
                   <div>
-                    <Label>Modèles prédéfinis</Label>
-                    <div className="flex gap-1 mt-1">
-                      <Button variant="outline" size="sm" onClick={() => handleUseTemplate('payment')}>
-                        Paiement
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleUseTemplate('update')}>
-                        Mise à jour
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleUseTemplate('welcome')}>
-                        Bienvenue
-                      </Button>
-                    </div>
+                    <Label htmlFor="message-type">Type de message</Label>
+                    <Select value={emailForm.type} onValueChange={(value) => setEmailForm({...emailForm, type: value as any})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {messageTypes.map((type) => (
+                          <SelectItem key={type.value} value={type.value}>
+                            <span className="flex items-center gap-2">
+                              {type.icon} {type.label}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Modèles prédéfinis</Label>
+                  <div className="flex gap-1 mt-1">
+                    <Button variant="outline" size="sm" onClick={() => handleUseTemplate('payment')}>
+                      Paiement
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleUseTemplate('update')}>
+                      Mise à jour
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleUseTemplate('welcome')}>
+                      Bienvenue
+                    </Button>
                   </div>
                 </div>
 
